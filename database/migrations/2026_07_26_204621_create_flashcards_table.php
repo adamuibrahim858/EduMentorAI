@@ -1,0 +1,35 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('flashcards', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('course_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('summary_id')->constrained()->cascadeOnDelete();
+            $table->longText('front');
+            $table->longText('back');
+            $table->enum('difficulty', ['easy', 'medium', 'hard'])->default('medium')->index();
+            $table->timestamps();
+            $table->softDeletes();
+
+            $table->index(['course_id', 'summary_id']);
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('flashcards');
+    }
+};
