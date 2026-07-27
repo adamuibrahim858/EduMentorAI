@@ -7,10 +7,23 @@
 
         <title>{{ $title ?? 'Authentication' }} - {{ config('app.name', 'EduMentor AI') }}</title>
 
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+        <script>
+            if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark')
+            }
+        </script>
+
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
     </head>
-    <body class="h-full bg-slate-100 text-slate-950 antialiased dark:bg-slate-950 dark:text-white">
+    <body class="h-full bg-[#F8FAFC] text-slate-900 antialiased selection:bg-indigo-500 selection:text-white dark:bg-slate-950 dark:text-slate-100 font-sans">
         <main class="min-h-full overflow-hidden">
             {{ $slot }}
         </main>
@@ -18,3 +31,4 @@
         @livewireScripts
     </body>
 </html>
+

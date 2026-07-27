@@ -1,81 +1,108 @@
-<div class="relative grid min-h-screen place-items-center px-6 py-10 sm:px-8">
-    <div class="absolute inset-0 -z-10 bg-[linear-gradient(135deg,#f8fafc_0%,#eef2ff_38%,#eff6ff_70%,#faf5ff_100%)] dark:bg-[linear-gradient(135deg,#020617_0%,#111827_45%,#172554_100%)]"></div>
+<div class="relative flex min-h-screen items-center justify-center p-4 sm:p-6 lg:p-8 overflow-hidden bg-[#F8FAFC] dark:bg-slate-950">
+    <!-- Ambient Background Glows -->
+    <div class="pointer-events-none absolute -top-40 -right-40 size-96 rounded-full bg-purple-500/15 blur-3xl dark:bg-purple-600/20"></div>
+    <div class="pointer-events-none absolute -bottom-40 -left-40 size-96 rounded-full bg-indigo-500/15 blur-3xl dark:bg-indigo-600/20"></div>
+    <div class="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[600px] rounded-full bg-blue-500/10 blur-3xl dark:bg-blue-600/10"></div>
 
-    <div class="grid w-full max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-        <aside class="hidden min-h-[620px] rounded-[2.5rem] border border-white/70 bg-white/50 p-8 shadow-2xl shadow-purple-950/10 backdrop-blur-xl dark:border-white/10 dark:bg-white/10 lg:block">
-            <div class="flex h-full flex-col justify-between overflow-hidden rounded-[2rem] bg-slate-950 p-8 text-white shadow-inner">
-                <div class="flex items-center justify-between">
-                    <div class="grid grid-cols-4 gap-2">
-                        <div class="size-3 rounded-full bg-indigo-300"></div>
-                        <div class="size-3 rounded-full bg-blue-300"></div>
-                        <div class="size-3 rounded-full bg-purple-300"></div>
-                        <div class="size-3 rounded-full bg-white/40"></div>
-                    </div>
-                    <div class="h-2 w-24 rounded-full bg-white/25"></div>
+    <div class="relative w-full max-w-6xl grid gap-8 lg:grid-cols-2 lg:items-center">
+        
+        <!-- LEFT SIDE: Hero / Value Props Showcase -->
+        <aside class="relative flex flex-col justify-between overflow-hidden rounded-[2.5rem] border border-slate-200/80 bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 p-8 sm:p-12 text-white shadow-2xl shadow-purple-950/20 dark:border-slate-800">
+            <!-- Background Glows -->
+            <div class="absolute -right-16 -top-16 size-80 rounded-full bg-purple-500/30 blur-3xl"></div>
+            <div class="absolute -bottom-16 -left-16 size-80 rounded-full bg-indigo-500/30 blur-3xl"></div>
+            <div class="absolute inset-0 bg-[radial-gradient(#a855f7_1px,transparent_1px)] [background-size:24px_24px] opacity-10"></div>
+
+            <!-- Top Header Badge -->
+            <div class="relative z-10 flex items-center justify-between">
+                <div class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 backdrop-blur-md">
+                    <span class="text-xs font-semibold tracking-wide text-white/90">🚀 Instant Access</span>
                 </div>
+                <div class="flex items-center gap-1.5 text-xs text-white/70">
+                    <span class="font-bold text-emerald-400">Free Tier Included</span>
+                </div>
+            </div>
 
-                <div class="space-y-4">
-                    <div class="h-48 rounded-[2rem] border border-white/10 bg-white/10 p-6">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <div class="h-3 w-32 rounded-full bg-white/70"></div>
-                                <div class="mt-4 h-3 w-52 rounded-full bg-white/20"></div>
-                            </div>
-                            <div class="grid size-16 place-items-center rounded-2xl bg-gradient-to-br from-indigo-400 to-blue-400 text-xl font-black">01</div>
-                        </div>
-                        <div class="mt-10 grid grid-cols-5 items-end gap-3">
-                            <div class="h-10 rounded-2xl bg-white/10"></div>
-                            <div class="h-16 rounded-2xl bg-blue-400/60"></div>
-                            <div class="h-24 rounded-2xl bg-indigo-400/70"></div>
-                            <div class="h-14 rounded-2xl bg-white/10"></div>
-                            <div class="h-28 rounded-2xl bg-purple-400/70"></div>
-                        </div>
+            <!-- Showcase Visuals -->
+            <div class="relative z-10 my-10 py-4 space-y-4">
+                <!-- Feature Box 1 -->
+                <div class="animate-float-slow flex items-center gap-4 rounded-2xl border border-white/15 bg-white/10 p-4 shadow-xl backdrop-blur-xl">
+                    <div class="flex size-11 items-center justify-center rounded-xl bg-indigo-500/30 text-indigo-300 text-xl font-bold">
+                        🧠
                     </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="rounded-3xl bg-gradient-to-br from-indigo-500 to-blue-500 p-5">
-                            <div class="h-3 w-20 rounded-full bg-white/80"></div>
-                            <div class="mt-12 h-4 w-28 rounded-full bg-white/40"></div>
-                        </div>
-                        <div class="rounded-3xl border border-white/10 bg-white/10 p-5">
-                            <div class="h-3 w-24 rounded-full bg-white/70"></div>
-                            <div class="mt-12 h-4 w-20 rounded-full bg-white/25"></div>
-                        </div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-white">Adaptive Learning AI</h4>
+                        <p class="text-xs text-white/70">Tailors practice questions to your weak spots.</p>
                     </div>
                 </div>
 
-                <div class="rounded-3xl border border-white/10 bg-white/10 p-6">
-                    <div class="h-4 w-44 rounded-full bg-white/80"></div>
-                    <div class="mt-4 h-3 w-full rounded-full bg-white/20"></div>
-                    <div class="mt-3 h-3 w-3/4 rounded-full bg-white/20"></div>
+                <!-- Feature Box 2 -->
+                <div class="animate-float-delayed flex items-center gap-4 rounded-2xl border border-white/15 bg-white/10 p-4 shadow-xl backdrop-blur-xl">
+                    <div class="flex size-11 items-center justify-center rounded-xl bg-purple-500/30 text-purple-300 text-xl font-bold">
+                        ⚡
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-white">Automated Routine Generator</h4>
+                        <p class="text-xs text-white/70">Builds optimized study calendars in seconds.</p>
+                    </div>
                 </div>
+
+                <!-- Feature Box 3 -->
+                <div class="flex items-center gap-4 rounded-2xl border border-white/15 bg-white/10 p-4 shadow-xl backdrop-blur-xl">
+                    <div class="flex size-11 items-center justify-center rounded-xl bg-blue-500/30 text-blue-300 text-xl font-bold">
+                        📊
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-white">Real-Time Performance Analytics</h4>
+                        <p class="text-xs text-white/70">Track test scores and mastery growth.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Tagline -->
+            <div class="relative z-10 space-y-3">
+                <h2 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+                    Join 10,000+ AI <span class="bg-gradient-to-r from-purple-300 via-pink-300 to-indigo-300 bg-clip-text text-transparent">Achievers</span>
+                </h2>
+                <p class="text-sm leading-relaxed text-slate-300">
+                    Create your account in 5 seconds with Google and unlock full access to EduMentor AI.
+                </p>
             </div>
         </aside>
 
-        <x-auth.card>
-            <x-auth.logo class="mb-10" />
+        <!-- RIGHT SIDE: Signup Card -->
+        <div class="flex items-center justify-center">
+            <x-auth.card class="w-full">
+                <x-auth.logo class="mb-8" />
 
-            <div class="space-y-3">
-                <h1 class="text-4xl font-bold tracking-tight text-slate-950 dark:text-white">Create your account</h1>
-                <p class="text-base leading-7 text-slate-600 dark:text-slate-300">Start learning smarter with AI.</p>
-            </div>
+                <div class="space-y-2">
+                    <h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Create your EduMentor AI Account</h1>
+                    <p class="text-sm text-slate-600 dark:text-slate-400">Start learning smarter today.</p>
+                </div>
 
-            <div class="mt-8 space-y-5">
-                <x-auth.google-button
-                    wire:click="signUpWithGoogle"
-                    loading-target="signUpWithGoogle"
-                    default-text="Sign up with Google"
-                />
+                <div class="mt-8 space-y-6">
+                    <x-auth.google-button
+                        wire:click="signUpWithGoogle"
+                        loading-target="signUpWithGoogle"
+                        default-text="Sign up with Google"
+                    />
 
-                <p class="text-center text-xs leading-6 text-slate-500 dark:text-slate-400">
-                    By continuing you agree to Terms and Privacy.
-                </p>
-            </div>
+                    <!-- Security & Terms -->
+                    <div class="rounded-xl border border-slate-100 bg-slate-50/80 p-3.5 text-center text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-400">
+                        <span class="font-medium text-slate-700 dark:text-slate-300">✨ One-click Instant Access</span>
+                        <p class="mt-1">By continuing you agree to Terms and Privacy Policy.</p>
+                    </div>
+                </div>
 
-            <div class="mt-8 border-t border-slate-200 pt-6 text-center text-sm text-slate-600 dark:border-white/10 dark:text-slate-300">
-                Already have account?
-                <a href="{{ route('login') }}" wire:navigate class="font-semibold text-indigo-600 transition hover:text-purple-600 dark:text-indigo-300">Login</a>
-            </div>
-        </x-auth.card>
+                <div class="mt-8 border-t border-slate-200/80 pt-6 text-center text-sm text-slate-600 dark:border-slate-800 dark:text-slate-400">
+                    Already have account?
+                    <a href="{{ route('login') }}" wire:navigate class="ml-1 font-semibold text-indigo-600 transition hover:text-indigo-500 hover:underline dark:text-indigo-400">
+                        Sign In
+                    </a>
+                </div>
+            </x-auth.card>
+        </div>
+
     </div>
 </div>
+

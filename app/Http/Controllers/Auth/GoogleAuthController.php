@@ -16,6 +16,7 @@ class GoogleAuthController extends Controller
     public function redirect(): RedirectResponse
     {
         return Socialite::driver('google')
+            ->redirectUrl($this->googleRedirectUri())
             ->scopes(['openid', 'profile', 'email'])
             ->redirect();
     }
@@ -23,7 +24,10 @@ class GoogleAuthController extends Controller
     public function callback(GoogleAuthService $googleAuthService): RedirectResponse
     {
         try {
-            $googleUser = Socialite::driver('google')->stateless()->user();
+            $googleUser = Socialite::driver('google')
+                ->redirectUrl($this->googleRedirectUri())
+                ->stateless()
+                ->user();
             $user = $googleAuthService->findOrCreateUser($googleUser);
 
             Auth::login($user, remember: true);
@@ -47,5 +51,10 @@ class GoogleAuthController extends Controller
         return redirect()
             ->route('auth.error')
             ->with('auth_error', $message);
+    }
+
+    private function googleRedirectUri(): string
+    {
+        return route('auth.google.callback');
     }
 }
