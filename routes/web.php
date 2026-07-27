@@ -32,6 +32,18 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/logout', LogoutController::class)->name('logout');
 });
 
+use App\Http\Controllers\SummaryController;
+use App\Livewire\Course\Index as CourseIndex;
+use App\Livewire\Course\Show as CourseShow;
+
 Route::middleware(['auth', 'verified', 'active.account'])->group(function (): void {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
+    
+    // Course Management Routes
+    Route::get('/courses', CourseIndex::class)->name('courses.index');
+    Route::get('/courses/{course}', CourseShow::class)->name('courses.show');
+
+    // AI Summary PDF Routes
+    Route::get('/summaries/{summary}/download', [SummaryController::class, 'download'])->name('summaries.download');
+    Route::get('/summaries/{summary}/preview', [SummaryController::class, 'preview'])->name('summaries.preview');
 });

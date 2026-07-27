@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('profession')->nullable();
             $table->enum('highest_qualification', ['Degree', 'Masters', 'PhD', 'Professor', 'Other'])->default('Other')->index();
             $table->string('specialization')->nullable()->index();
+            $table->string('department')->nullable()->index();
             $table->unsignedTinyInteger('years_of_experience')->nullable();
             $table->text('teaching_style')->nullable();
             $table->text('research_interest')->nullable();
