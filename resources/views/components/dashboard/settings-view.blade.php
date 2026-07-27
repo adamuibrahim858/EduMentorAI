@@ -58,9 +58,35 @@
                             <p class="text-[11px] text-slate-500 dark:text-slate-400">Linked to {{ $user->email }}</p>
                         </div>
                     </div>
-                    <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">Connected</span>
+                    <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                        {{ $user->google_id ? 'Connected' : 'Not Connected' }}
+                    </span>
+                </div>
+
+                <!-- Password Status Card -->
+                <div class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800/80">
+                    <div class="flex items-center gap-3">
+                        <svg class="size-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <div>
+                            <p class="text-xs font-bold text-slate-900 dark:text-white">
+                                {{ is_null($user->password) ? 'Set Account Password' : 'Account Password' }}
+                            </p>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                                {{ is_null($user->password) ? 'Google-only account. Set a password to enable email login.' : 'Email & Password authentication active.' }}
+                            </p>
+                        </div>
+                    </div>
+                    <button 
+                        @click="alert('Password setting modal (UI Preview)')"
+                        class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 transition"
+                    >
+                        {{ is_null($user->password) ? '+ Set Password' : 'Change Password' }}
+                    </button>
                 </div>
             </div>
+
         </div>
 
         <!-- Section 3: Notification Preferences -->

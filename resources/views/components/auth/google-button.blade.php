@@ -1,7 +1,8 @@
 @props([
-    'loadingTarget',
+    'loadingTarget' => 'continueWithGoogle, signUpWithGoogle',
     'defaultText' => 'Continue with Google',
 ])
+
 
 <button
     type="button"
