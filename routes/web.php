@@ -14,6 +14,9 @@ use App\Livewire\Auth\VerifyEmail;
 use App\Livewire\Course\Index as CourseIndex;
 use App\Livewire\Course\Show as CourseShow;
 use App\Livewire\Dashboard\Index as Dashboard;
+use App\Livewire\Notification\Index as NotificationIndex;
+use App\Livewire\Profile\Show as ProfileShow;
+use App\Livewire\Routine\Index as RoutineIndex;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
@@ -38,6 +41,10 @@ Route::middleware('auth')->group(function (): void {
 
 Route::middleware(['auth', 'verified', 'active.account'])->group(function (): void {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
+    Route::get('/profile', ProfileShow::class)->name('profile');
+    Route::get('/routine', RoutineIndex::class)->name('routine');
+    Route::get('/notifications', NotificationIndex::class)->name('notifications.index');
+    Route::get('/notifications-center', NotificationIndex::class)->name('notifications');
 
     // Course Management
     Route::get('/courses', CourseIndex::class)->name('courses.index');

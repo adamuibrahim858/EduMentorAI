@@ -1,8 +1,11 @@
 @props(['activeTab' => 'dashboard'])
 
 @php
-    $isOnDashboard = request()->routeIs('dashboard');
-    $isOnCourses = request()->routeIs('courses.*');
+    $isOnDashboard     = request()->routeIs('dashboard');
+    $isOnCourses       = request()->routeIs('courses.*');
+    $isOnProfile       = request()->routeIs('profile');
+    $isOnRoutine       = request()->routeIs('routine');
+    $isOnNotifications = request()->routeIs('notifications*');
 
     // Active & inactive CSS classes
     $activeClasses = 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25';
@@ -102,7 +105,7 @@
                 class="{{ $baseClasses }}"
             >
         @else
-            <a href="{{ route('dashboard') }}?tab=profile" class="{{ $baseClasses }} {{ $inactiveClasses }}">
+            <a href="{{ route('profile') }}" class="{{ $baseClasses }} {{ $isOnProfile ? $activeClasses : $inactiveClasses }}">
         @endif
             <svg class="size-5 shrink-0 transition-transform duration-200 group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -168,7 +171,7 @@
                 class="{{ $baseClasses }}"
             >
         @else
-            <a href="{{ route('dashboard') }}?tab=routine" class="{{ $baseClasses }} {{ $inactiveClasses }}">
+            <a href="{{ route('routine') }}" class="{{ $baseClasses }} {{ $isOnRoutine ? $activeClasses : $inactiveClasses }}">
         @endif
             <svg class="size-5 shrink-0 transition-transform duration-200 group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -183,6 +186,9 @@
         {{-- ============================================ --}}
         {{-- Notifications --}}
         {{-- ============================================ --}}
+        @php
+            $unreadNavCount = auth()->check() ? app(\App\Services\NotificationService::class)->getUnreadCount() : 0;
+        @endphp
         @if($isOnDashboard)
             <button 
                 @click="currentTab = 'notifications'; mobileSidebarOpen = false"
@@ -193,13 +199,17 @@
                 class="{{ $baseClasses }}"
             >
         @else
-            <a href="{{ route('dashboard') }}?tab=notifications" class="{{ $baseClasses }} {{ $inactiveClasses }}">
+            <a href="{{ route('notifications.index') }}" class="{{ $baseClasses }} {{ $isOnNotifications ? $activeClasses : $inactiveClasses }}">
         @endif
             <svg class="size-5 shrink-0 transition-transform duration-200 group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
             <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="whitespace-nowrap">Notifications</span>
-            <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="ml-auto flex size-2 rounded-full bg-emerald-500 ring-4 ring-emerald-500/20"></span>
+            @if($unreadNavCount > 0)
+                <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="ml-auto flex size-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-extrabold text-white">
+                    {{ $unreadNavCount }}
+                </span>
+            @endif
         @if($isOnDashboard)
             </button>
         @else

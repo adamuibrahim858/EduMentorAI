@@ -483,9 +483,17 @@
                                     <div><span class="text-slate-400">By:</span> <strong class="text-slate-700 dark:text-slate-300">{{ $material->uploader->name ?? 'User' }}</strong></div>
                                 </div>
 
-                                @if($material->status === 'failed' && $material->error_message)
-                                    <div class="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-[11px] text-rose-700 dark:text-rose-300 font-medium">
-                                        ⚠️ {{ $material->error_message }}
+                                @if($material->status === 'failed' || $material->error_message)
+                                    <div class="p-3 rounded-2xl bg-rose-50 border border-rose-200/80 dark:bg-rose-950/50 dark:border-rose-900/60 text-xs text-rose-800 dark:text-rose-200 font-semibold space-y-1 shadow-sm">
+                                        <div class="flex items-center gap-1.5 font-bold text-rose-700 dark:text-rose-300">
+                                            <svg class="size-4 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                            </svg>
+                                            <span>Processing / AI Quota Alert</span>
+                                        </div>
+                                        <p class="text-[11px] leading-relaxed text-rose-700/90 dark:text-rose-300/90 font-normal">
+                                            {{ $material->error_message ?: 'An unexpected error occurred during processing. Please try again.' }}
+                                        </p>
                                     </div>
                                 @endif
 
@@ -537,6 +545,25 @@
                                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                                             </svg>
                                             Generating Summary...
+                                        </button>
+                                    </div>
+                                @elseif($material->status === 'failed')
+                                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+                                        <button 
+                                            wire:click="generateSummary({{ $material->id }})" 
+                                            wire:loading.attr="disabled"
+                                            wire:target="generateSummary({{ $material->id }})"
+                                            class="w-full rounded-xl bg-gradient-to-r from-amber-600 to-rose-600 hover:from-amber-700 hover:to-rose-700 text-white font-bold px-4 py-2.5 text-xs shadow-md transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <svg wire:loading.remove wire:target="generateSummary({{ $material->id }})" class="size-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            <svg wire:loading wire:target="generateSummary({{ $material->id }})" class="animate-spin size-4 text-white" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                            </svg>
+                                            <span wire:loading.remove wire:target="generateSummary({{ $material->id }})">Retry AI Summary</span>
+                                            <span wire:loading wire:target="generateSummary({{ $material->id }})">Retrying...</span>
                                         </button>
                                     </div>
                                 @else

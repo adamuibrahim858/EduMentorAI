@@ -320,7 +320,13 @@ class Show extends Component
         }
 
         $this->course->refresh();
-        session()->flash('message', 'AI Summary generation started in background!');
+        $material->refresh();
+
+        if ($material->status === 'failed') {
+            session()->flash('error', 'AI Summary Error: ' . ($material->error_message ?: 'Processing failed. Please check AI quota or API key configuration.'));
+        } else {
+            session()->flash('message', 'AI Summary generation started!');
+        }
     }
 
     public function viewSummary(Summary $summary): void
@@ -377,7 +383,13 @@ class Show extends Component
         }
 
         $this->course->refresh();
-        session()->flash('message', 'Regenerating AI Summary...');
+        $material->refresh();
+
+        if ($material->status === 'failed') {
+            session()->flash('error', 'AI Summary Error: ' . ($material->error_message ?: 'Regeneration failed. Please check AI quota or API key configuration.'));
+        } else {
+            session()->flash('message', 'Regenerating AI Summary...');
+        }
     }
 
     public function downloadMaterial(CourseMaterial $material)
