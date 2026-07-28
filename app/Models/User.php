@@ -42,6 +42,18 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    /**
+     * Override notifications relationship to use the laravel_notifications table,
+     * avoiding conflict with the custom app-level 'notifications' table.
+     */
+    public function notifications()
+    {
+        return $this->morphMany(
+            \App\Models\LaravelNotification::class,
+            'notifiable'
+        )->orderBy('created_at', 'desc');
+    }
+
     public function courses()
     {
         return $this->hasMany(Course::class);

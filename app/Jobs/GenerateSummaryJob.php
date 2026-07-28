@@ -77,8 +77,8 @@ class GenerateSummaryJob implements ShouldQueue
                     'plain_text' => $plainText,
                     'summary_type' => 'detailed',
                     'difficulty' => 'medium',
-                    'generated_by' => 'Gemma-AI',
-                    'ai_model' => $result['model'] ?? 'Gemma-2-9B-It',
+                    'generated_by' => 'Gemma-4-AI',
+                    'ai_model' => $result['model'] ?? 'gemma-4-31b-it',
                     'prompt_version' => 'v1.0',
                 ]
             );

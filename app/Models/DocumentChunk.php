@@ -12,6 +12,7 @@ class DocumentChunk extends Model
 
     protected $fillable = [
         'material_id',
+        'chunk_number',
         'chunk_index',
         'content',
         'token_count',

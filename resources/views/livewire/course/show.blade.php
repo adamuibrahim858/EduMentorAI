@@ -777,25 +777,23 @@
                     <button wire:click="$set('showMaterialUploadModal', false)" class="text-slate-400 hover:text-slate-600">&times;</button>
                 </div>
 
-                <form 
-                    wire:submit.prevent="uploadCourseMaterial" 
-                    x-data="{ isUploading: false, progress: 0 }"
-                    x-on:livewire-upload-start="isUploading = true; progress = 0"
-                    x-on:livewire-upload-finish="isUploading = false"
-                    x-on:livewire-upload-error="isUploading = false"
-                    x-on:livewire-upload-progress="progress = $event.detail.progress"
-                    class="space-y-4"
-                >
+                <form wire:submit="uploadCourseMaterial" class="space-y-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Material Title</label>
                         <input wire:model="materialTitle" type="text" placeholder="e.g. Chapter 1 - Intro to Expert Systems" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white" />
                         @error('materialTitle') <span class="text-xs text-rose-500 mt-1 block font-semibold">{{ $message }}</span> @enderror
                     </div>
 
-                    <div>
+                    <div 
+                        x-data="{ isUploading: false, progress: 0 }"
+                        x-on:livewire-upload-start="isUploading = true; progress = 0"
+                        x-on:livewire-upload-finish="isUploading = false; progress = 100"
+                        x-on:livewire-upload-error="isUploading = false"
+                        x-on:livewire-upload-progress="progress = $event.detail.progress"
+                    >
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">PDF File (Max {{ config('gemma.max_upload_size_mb', 20) }}MB)</label>
                         <input 
-                            wire:model="materialFile" 
+                            wire:model.live="materialFile" 
                             type="file" 
                             accept="application/pdf" 
                             class="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-950 dark:file:text-indigo-300 cursor-pointer" 
@@ -804,13 +802,20 @@
                         <!-- File Upload Progress Bar -->
                         <div x-show="isUploading" x-cloak class="mt-2 space-y-1">
                             <div class="flex items-center justify-between text-xs text-indigo-600 font-semibold">
-                                <span>Uploading PDF file...</span>
+                                <span>Uploading PDF file to server...</span>
                                 <span x-text="progress + '%'"></span>
                             </div>
                             <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
                                 <div class="bg-indigo-600 h-2 rounded-full transition-all duration-150" :style="'width: ' + progress + '%'"></div>
                             </div>
                         </div>
+
+                        @if($materialFile)
+                            <div class="mt-2 flex items-center gap-1.5 text-xs text-emerald-600 font-semibold">
+                                <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                <span>File ready for processing!</span>
+                            </div>
+                        @endif
 
                         @error('materialFile') <span class="text-xs text-rose-500 mt-1 block font-semibold">⚠️ {{ $message }}</span> @enderror
                     </div>
@@ -819,17 +824,17 @@
                         <button type="button" wire:click="$set('showMaterialUploadModal', false)" class="rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100">Cancel</button>
                         <button 
                             type="submit" 
-                            :disabled="isUploading"
                             wire:loading.attr="disabled"
+                            wire:target="materialFile uploadCourseMaterial"
                             class="rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
                         >
-                            <template x-if="isUploading">
-                                <svg class="animate-spin size-4 text-white" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                </svg>
-                            </template>
-                            <span x-text="isUploading ? 'Uploading PDF...' : 'Upload & Trigger AI Summary'"></span>
+                            <svg wire:loading wire:target="materialFile uploadCourseMaterial" class="animate-spin size-4 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            <span wire:loading.remove wire:target="materialFile uploadCourseMaterial">Upload & Trigger AI Summary</span>
+                            <span wire:loading wire:target="materialFile">Uploading PDF...</span>
+                            <span wire:loading wire:target="uploadCourseMaterial">Saving & Starting AI...</span>
                         </button>
                     </div>
                 </form>
@@ -846,15 +851,7 @@
                     <button wire:click="$set('showPastQuestionModal', false)" class="text-slate-400 hover:text-slate-600">&times;</button>
                 </div>
 
-                <form 
-                    wire:submit.prevent="uploadPastQuestion" 
-                    x-data="{ isUploading: false, progress: 0 }"
-                    x-on:livewire-upload-start="isUploading = true; progress = 0"
-                    x-on:livewire-upload-finish="isUploading = false"
-                    x-on:livewire-upload-error="isUploading = false"
-                    x-on:livewire-upload-progress="progress = $event.detail.progress"
-                    class="space-y-4"
-                >
+                <form wire:submit="uploadPastQuestion" class="space-y-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Paper Title</label>
                         <input wire:model="pastQuestionTitle" type="text" placeholder="e.g. 2023/2024 First Semester Examination" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white" />
@@ -872,10 +869,16 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div 
+                        x-data="{ isUploading: false, progress: 0 }"
+                        x-on:livewire-upload-start="isUploading = true; progress = 0"
+                        x-on:livewire-upload-finish="isUploading = false; progress = 100"
+                        x-on:livewire-upload-error="isUploading = false"
+                        x-on:livewire-upload-progress="progress = $event.detail.progress"
+                    >
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">PDF File</label>
                         <input 
-                            wire:model="pastQuestionFile" 
+                            wire:model.live="pastQuestionFile" 
                             type="file" 
                             accept="application/pdf" 
                             class="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 dark:file:bg-purple-950 dark:file:text-purple-300 cursor-pointer" 
@@ -884,13 +887,20 @@
                         <!-- Progress Bar -->
                         <div x-show="isUploading" x-cloak class="mt-2 space-y-1">
                             <div class="flex items-center justify-between text-xs text-purple-600 font-semibold">
-                                <span>Uploading Past Question PDF...</span>
+                                <span>Uploading Past Question PDF to server...</span>
                                 <span x-text="progress + '%'"></span>
                             </div>
                             <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
                                 <div class="bg-purple-600 h-2 rounded-full transition-all duration-150" :style="'width: ' + progress + '%'"></div>
                             </div>
                         </div>
+
+                        @if($pastQuestionFile)
+                            <div class="mt-2 flex items-center gap-1.5 text-xs text-purple-600 font-semibold">
+                                <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                <span>File ready for upload!</span>
+                            </div>
+                        @endif
 
                         @error('pastQuestionFile') <span class="text-xs text-rose-500 mt-1 block font-semibold">⚠️ {{ $message }}</span> @enderror
                     </div>
@@ -899,17 +909,17 @@
                         <button type="button" wire:click="$set('showPastQuestionModal', false)" class="rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100">Cancel</button>
                         <button 
                             type="submit" 
-                            :disabled="isUploading"
                             wire:loading.attr="disabled"
+                            wire:target="pastQuestionFile uploadPastQuestion"
                             class="rounded-xl bg-purple-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
                         >
-                            <template x-if="isUploading">
-                                <svg class="animate-spin size-4 text-white" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                </svg>
-                            </template>
-                            <span x-text="isUploading ? 'Uploading PDF...' : 'Save Past Question'"></span>
+                            <svg wire:loading wire:target="pastQuestionFile uploadPastQuestion" class="animate-spin size-4 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            <span wire:loading.remove wire:target="pastQuestionFile uploadPastQuestion">Save Past Question</span>
+                            <span wire:loading wire:target="pastQuestionFile">Uploading PDF...</span>
+                            <span wire:loading wire:target="uploadPastQuestion">Saving...</span>
                         </button>
                     </div>
                 </form>

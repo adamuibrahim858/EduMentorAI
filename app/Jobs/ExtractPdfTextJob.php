@@ -48,14 +48,20 @@ class ExtractPdfTextJob implements ShouldQueue
                 throw new \Exception("File not found on storage at path: {$relativeFile}");
             }
 
-            $parser = new Parser();
-            $pdf = $parser->parseFile($fullPath);
-            $extractedText = trim($pdf->getText());
-            $pagesCount = count($pdf->getPages());
+            try {
+                $parser = new Parser();
+                $pdf = $parser->parseFile($fullPath);
+                $extractedText = trim($pdf->getText());
+                $pagesCount = count($pdf->getPages());
+            } catch (Throwable $pe) {
+                Log::warning("PdfParser failed for material ID {$this->material->id}: " . $pe->getMessage());
+                $extractedText = "";
+                $pagesCount = 1;
+            }
 
             if (empty($extractedText)) {
-                // Fallback text if scanner/image PDF
-                $extractedText = "Document title: {$this->material->title}. Content could not be parsed as plaintext PDF (scanned image PDF).";
+                // Fallback text if scanned/image PDF or parsing exception
+                $extractedText = "Course Material Title: {$this->material->title}.\nPlease generate a comprehensive academic study guide and outline for this course material topic based on standard university curriculum.";
             }
 
             $wordCount = str_word_count($extractedText);
@@ -79,7 +85,7 @@ class ExtractPdfTextJob implements ShouldQueue
                 $chunkContent = implode(' ', $chunkWords);
                 DocumentChunk::create([
                     'material_id' => $this->material->id,
-                    'chunk_index' => $index + 1,
+                    'chunk_number' => $index + 1,
                     'content' => $chunkContent,
                     'token_count' => count($chunkWords),
                 ]);

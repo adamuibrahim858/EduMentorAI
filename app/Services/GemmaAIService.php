@@ -17,8 +17,8 @@ class GemmaAIService
     public function __construct()
     {
         $this->apiKey = config('gemma.api_key', env('GEMMA_AI_API_KEY', ''));
-        $this->model = config('gemma.model', 'gemma-2-9b-it');
-        $this->fallbackModel = config('gemma.fallback_model', 'gemini-1.5-flash');
+        $this->model = config('gemma.model', 'gemma-4-31b-it');
+        $this->fallbackModel = config('gemma.fallback_model', 'gemma-4-26b-a4b-it');
         $this->endpoint = rtrim(config('gemma.endpoint', 'https://generativelanguage.googleapis.com/v1beta/models'), '/');
         $this->timeout = (int) config('gemma.timeout', 60);
     }
