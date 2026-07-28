@@ -1,21 +1,4 @@
-@props(['user'])
-
-<div class="space-y-8">
-    <!-- Header -->
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Account & AI Settings</h1>
-            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Configure your personal profile preferences, AI tutor persona, and notifications.</p>
-        </div>
-        <button 
-            type="button" 
-            @click="alert('Settings saved successfully! (UI Preview)')"
-            class="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:bg-indigo-500 active:translate-y-0 shrink-0"
-        >
-            Save Changes
-        </button>
-    </div>
-
+<div class="space-y-6">
     <!-- Settings Sections Stack -->
     <div class="space-y-6">
         

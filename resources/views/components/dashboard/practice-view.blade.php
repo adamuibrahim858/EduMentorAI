@@ -1,22 +1,4 @@
-<div class="space-y-8">
-    <!-- Header -->
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">AI Practice & Quizzes</h1>
-            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Test your mastery with AI generated adaptive questions and instant feedback.</p>
-        </div>
-        <button 
-            type="button" 
-            @click="alert('Starting new AI practice quiz (UI Preview)')"
-            class="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:bg-indigo-500 active:translate-y-0 shrink-0"
-        >
-            <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            Generate Quiz
-        </button>
-    </div>
-
+<div class="space-y-6">
     <!-- Practice Sessions Modern Table -->
     <div class="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div class="overflow-x-auto">

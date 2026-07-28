@@ -15,8 +15,11 @@ use App\Livewire\Course\Index as CourseIndex;
 use App\Livewire\Course\Show as CourseShow;
 use App\Livewire\Dashboard\Index as Dashboard;
 use App\Livewire\Notification\Index as NotificationIndex;
+use App\Livewire\Practice\Index as PracticeIndex;
 use App\Livewire\Profile\Show as ProfileShow;
+use App\Livewire\Progress\Index as ProgressIndex;
 use App\Livewire\Routine\Index as RoutineIndex;
+use App\Livewire\Setting\Index as SettingIndex;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
@@ -42,9 +45,14 @@ Route::middleware('auth')->group(function (): void {
 Route::middleware(['auth', 'verified', 'active.account'])->group(function (): void {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
     Route::get('/profile', ProfileShow::class)->name('profile');
+    Route::get('/practices', PracticeIndex::class)->name('practices.index');
+    Route::get('/progress', ProgressIndex::class)->name('progress.index');
+    Route::get('/academic-progress', ProgressIndex::class)->name('progress');
     Route::get('/routine', RoutineIndex::class)->name('routine');
+    Route::get('/routines', RoutineIndex::class)->name('routines.index');
     Route::get('/notifications', NotificationIndex::class)->name('notifications.index');
     Route::get('/notifications-center', NotificationIndex::class)->name('notifications');
+    Route::get('/settings', SettingIndex::class)->name('settings.index');
 
     // Course Management
     Route::get('/courses', CourseIndex::class)->name('courses.index');

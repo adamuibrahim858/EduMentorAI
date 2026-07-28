@@ -70,10 +70,41 @@ PROMPT;
 
     /**
      * Generate practice multiple-choice questions from content.
+     * Returns structured JSON with an array of question objects.
      */
-    public function generatePracticeQuestions(string $content, int $count = 5): array
+    public function generatePracticeQuestions(string $content, int $count = 10, string $difficulty = 'medium'): array
     {
-        $prompt = "You are an expert examiner. Generate {$count} multiple-choice questions (with options A, B, C, D and explanation for correct answer) based on this material:\n\n{$content}\n\nReturn structured Markdown format.";
+        $prompt = <<<PROMPT
+You are an expert university examiner. Based on the course material below, generate exactly {$count} multiple-choice objective questions.
+
+Requirements:
+- Difficulty level: {$difficulty}
+- Each question MUST have exactly 4 options labeled A, B, C, D
+- Identify the single correct answer
+- Provide a brief explanation for the correct answer
+- Questions should be direct, unambiguous and academically rigorous
+- Topics should be spread across different areas of the material
+
+Return your response ONLY as a valid JSON array (no markdown, no extra text), following this exact structure:
+[
+  {
+    "question": "The full question text here?",
+    "topic": "Short topic label",
+    "options": {
+      "A": "First option text",
+      "B": "Second option text",
+      "C": "Third option text",
+      "D": "Fourth option text"
+    },
+    "correct_answer": "A",
+    "explanation": "Brief explanation of why A is correct."
+  }
+]
+
+--- COURSE MATERIAL ---
+{$content}
+PROMPT;
+
         return $this->generateContent($prompt);
     }
 
@@ -183,13 +214,19 @@ PROMPT;
                 ];
             }
 
-            // If rate limited (429), handle gracefully without endless retries
+            // If rate limited (429), try fallback model before failing
             if ($response->status() === 429) {
+                if ($activeModel !== $this->fallbackModel) {
+                    Log::warning("GemmaAIService: Rate limit (429) on {$activeModel}. Retrying with fallback {$this->fallbackModel} after brief delay.");
+                    sleep(2);
+                    return $this->generateContent($prompt, $this->fallbackModel);
+                }
+
                 Log::warning("GemmaAIService: Rate limit exceeded (429) on model {$activeModel}.");
                 return [
                     'success' => false,
                     'data' => null,
-                    'error' => 'Google Gemini API rate limit reached (HTTP 429). Please wait a few seconds and try again.'
+                    'error' => 'Google Gemini API rate limit reached (HTTP 429). Please wait a few seconds and click Retry AI.'
                 ];
             }
 

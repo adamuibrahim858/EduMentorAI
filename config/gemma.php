@@ -12,9 +12,9 @@ return [
 
     'api_key' => env('GEMMA_AI_API_KEY'),
 
-    'model' => env('GEMMA_MODEL', 'gemini-2.0-flash'),
+    'model' => env('GEMMA_MODEL', 'gemini-2.5-flash'),
 
-    'fallback_model' => env('GEMMA_FALLBACK_MODEL', 'gemini-1.5-flash'),
+    'fallback_model' => env('GEMMA_FALLBACK_MODEL', 'gemini-2.0-flash-lite'),
 
     'endpoint' => env('GEMMA_API_ENDPOINT', 'https://generativelanguage.googleapis.com/v1beta/models'),
 
