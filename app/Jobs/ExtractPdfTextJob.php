@@ -68,6 +68,19 @@ class ExtractPdfTextJob implements ShouldQueue
                 $extractedText = "Course Material Title: {$this->material->title}.\nPlease generate a comprehensive academic study guide and outline for this course material topic based on standard university curriculum.";
             }
 
+            // Ensure extractedText is valid UTF-8 without control/invalid binary characters for database storage
+            if (function_exists('mb_scrub')) {
+                $extractedText = mb_scrub($extractedText, 'UTF-8');
+            } else {
+                $extractedText = @iconv('UTF-8', 'UTF-8//IGNORE', $extractedText);
+            }
+            $extractedText = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/', '', $extractedText);
+            $extractedText = trim($extractedText);
+
+            if (empty($extractedText)) {
+                $extractedText = "Course Material Title: {$this->material->title}.\nPlease generate a comprehensive academic study guide and outline for this course material topic based on standard university curriculum.";
+            }
+
             $wordCount = str_word_count($extractedText);
 
             $this->material->update([

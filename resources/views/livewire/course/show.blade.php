@@ -447,18 +447,25 @@
                                     </div>
 
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold 
-                                        @if($material->status === 'completed') bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400
+                                        @if($material->summary) bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400
                                         @elseif($material->status === 'failed') bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-400
-                                        @else bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400 animate-pulse
+                                        @elseif(in_array($material->status, ['processing', 'generating_summary', 'generating_pdf'])) bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-400 animate-pulse
+                                        @else bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400
                                         @endif
                                     ">
                                         @if(in_array($material->status, ['processing', 'generating_summary', 'generating_pdf']))
-                                            <svg class="animate-spin size-3 text-amber-600" fill="none" viewBox="0 0 24 24">
+                                            <svg class="animate-spin size-3 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24">
                                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                                             </svg>
+                                            Processing
+                                        @elseif($material->summary)
+                                            Completed
+                                        @elseif($material->status === 'failed')
+                                            Failed
+                                        @else
+                                            Pending
                                         @endif
-                                        {{ ucfirst(str_replace('_', ' ', $material->status)) }}
                                     </span>
                                 </div>
 
@@ -479,6 +486,77 @@
                                 @if($material->status === 'failed' && $material->error_message)
                                     <div class="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-[11px] text-rose-700 dark:text-rose-300 font-medium">
                                         ⚠️ {{ $material->error_message }}
+                                    </div>
+                                @endif
+
+                                <!-- AI Summary Actions Section -->
+                                @if($material->summary)
+                                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                                        <div class="flex items-center gap-2">
+                                            <button 
+                                                wire:click="viewSummary({{ $material->summary->id }})" 
+                                                class="inline-flex items-center gap-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 px-3 py-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition"
+                                            >
+                                                <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                                View Summary
+                                            </button>
+
+                                            @if($material->summary->pdf_path)
+                                                <button 
+                                                    wire:click="downloadSummary({{ $material->summary->id }})" 
+                                                    class="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition"
+                                                >
+                                                    <svg class="size-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                    </svg>
+                                                    Download Summary PDF
+                                                </button>
+                                            @endif
+                                        </div>
+
+                                        <button 
+                                            wire:click="regenerateSummary({{ $material->id }})" 
+                                            wire:loading.attr="disabled"
+                                            wire:target="regenerateSummary({{ $material->id }})"
+                                            class="text-[11px] font-bold text-amber-600 hover:text-amber-700 dark:text-amber-400 transition"
+                                        >
+                                            Regenerate
+                                        </button>
+                                    </div>
+                                @elseif(in_array($material->status, ['processing', 'generating_summary', 'generating_pdf']))
+                                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+                                        <button 
+                                            disabled 
+                                            class="w-full rounded-xl bg-indigo-50 dark:bg-indigo-950/40 px-4 py-2 text-xs font-bold text-indigo-400 dark:text-indigo-500 cursor-not-allowed flex items-center justify-center gap-2"
+                                        >
+                                            <svg class="animate-spin size-4 text-indigo-500" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                            </svg>
+                                            Generating Summary...
+                                        </button>
+                                    </div>
+                                @else
+                                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+                                        <button 
+                                            wire:click="generateSummary({{ $material->id }})" 
+                                            wire:loading.attr="disabled"
+                                            wire:target="generateSummary({{ $material->id }})"
+                                            class="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold px-4 py-2.5 text-xs shadow-md transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <svg wire:loading.remove wire:target="generateSummary({{ $material->id }})" class="size-4 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                                            </svg>
+                                            <svg wire:loading wire:target="generateSummary({{ $material->id }})" class="animate-spin size-4 text-white" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                            </svg>
+                                            <span wire:loading.remove wire:target="generateSummary({{ $material->id }})">Generate AI Summary</span>
+                                            <span wire:loading wire:target="generateSummary({{ $material->id }})">Generating Summary...</span>
+                                        </button>
                                     </div>
                                 @endif
 
@@ -785,7 +863,7 @@
     </div>
 
     <!-- MODAL 1: MATERIAL UPLOAD MODAL -->
-    @if($showMaterialUploadModal || $errors->has('title') || $errors->has('material_file'))
+    @if($showMaterialUploadModal || $errors->has('materialTitle') || $errors->has('materialFile'))
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
             <div class="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-6">
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
@@ -803,7 +881,7 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">PDF File (Max 20MB)</label>
                         <input 
-                            wire:model="materialFile" 
+                            wire:model.live="materialFile" 
                             type="file" 
                             accept=".pdf,application/pdf" 
                             class="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-950 dark:file:text-indigo-300 cursor-pointer" 
@@ -816,14 +894,14 @@
                         <button 
                             type="submit" 
                             wire:loading.attr="disabled"
-                            wire:target="materialFile, uploadCourseMaterial"
+                            wire:target="materialFile uploadCourseMaterial"
                             class="rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
                         >
-                            <svg wire:loading wire:target="materialFile, uploadCourseMaterial" class="animate-spin size-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <svg wire:loading wire:target="materialFile uploadCourseMaterial" class="animate-spin size-4 text-white" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                             </svg>
-                            <span wire:loading.remove wire:target="materialFile, uploadCourseMaterial">Upload Material</span>
+                            <span wire:loading.remove wire:target="materialFile uploadCourseMaterial">Upload Material</span>
                             <span wire:loading wire:target="materialFile">Uploading PDF...</span>
                             <span wire:loading wire:target="uploadCourseMaterial">Saving...</span>
                         </button>

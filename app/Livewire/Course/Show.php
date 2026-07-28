@@ -301,19 +301,83 @@ class Show extends Component
         $this->lecturer_highest_qualification = 'PhD';
     }
 
+    public function generateSummary(CourseMaterial $material): void
+    {
+        if ($material->course->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $material->update([
+            'status'           => 'processing',
+            'embedding_status' => 'processing',
+            'error_message'    => null,
+        ]);
+
+        try {
+            ExtractPdfTextJob::dispatch($material);
+        } catch (Throwable $e) {
+            (new ExtractPdfTextJob($material))->handle();
+        }
+
+        $this->course->refresh();
+        session()->flash('message', 'AI Summary generation started in background!');
+    }
+
     public function viewSummary(Summary $summary): void
     {
-        $this->authorize('view', $summary);
+        if ($summary->course->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $this->selectedSummary = $summary;
         $this->showSummaryModal = true;
     }
 
+    public function downloadSummary(Summary $summary)
+    {
+        if ($summary->course->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if (!$summary->pdf_path || !\Illuminate\Support\Facades\Storage::disk('public')->exists($summary->pdf_path)) {
+            session()->flash('error', 'Summary PDF file is not available yet.');
+            return;
+        }
+
+        return response()->download(
+            \Illuminate\Support\Facades\Storage::disk('public')->path($summary->pdf_path),
+            \Illuminate\Support\Str::slug($summary->title) . '.pdf',
+            ['Content-Type' => 'application/pdf']
+        );
+    }
+
     public function regenerateSummary(CourseMaterial $material): void
     {
-        $this->authorize('view', $material);
-        $material->update(['status' => 'processing']);
-        ExtractPdfTextJob::dispatch($material);
-        session()->flash('message', 'Regenerating AI summary in background...');
+        if ($material->course->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if ($material->summary) {
+            if ($material->summary->pdf_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($material->summary->pdf_path)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($material->summary->pdf_path);
+            }
+            $material->summary->delete();
+        }
+
+        $material->update([
+            'status'           => 'processing',
+            'embedding_status' => 'processing',
+            'error_message'    => null,
+        ]);
+
+        try {
+            ExtractPdfTextJob::dispatch($material);
+        } catch (Throwable $e) {
+            (new ExtractPdfTextJob($material))->handle();
+        }
+
+        $this->course->refresh();
+        session()->flash('message', 'Regenerating AI Summary...');
     }
 
     public function downloadMaterial(CourseMaterial $material)
