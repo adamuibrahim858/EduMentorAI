@@ -26,6 +26,28 @@
         <!-- Main Scrollable Content Canvas -->
         <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-8">
             
+            @if(session()->has('message'))
+                <div class="rounded-2xl bg-emerald-50 border border-emerald-200 p-4 dark:bg-emerald-950/50 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-sm font-semibold flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-2">
+                        <svg class="size-5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{{ session('message') }}</span>
+                    </div>
+                </div>
+            @endif
+
+            @if(session()->has('error'))
+                <div class="rounded-2xl bg-rose-50 border border-rose-200 p-4 dark:bg-rose-950/50 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-sm font-semibold flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-2">
+                        <svg class="size-5 text-rose-600 dark:text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span>{{ session('error') }}</span>
+                    </div>
+                </div>
+            @endif
+            
             <!-- Navigation Back Bar -->
             <div class="flex items-center justify-between">
                 <a href="{{ route('courses.index') }}" class="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition">
@@ -461,25 +483,19 @@
                                 @endif
 
                                 <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
-                                    @if($material->summary)
-                                        <button 
-                                            wire:click="viewSummary({{ $material->summary->id }})" 
-                                            class="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
-                                        >
-                                            View Summary &rarr;
-                                        </button>
-                                    @else
-                                        <button 
-                                            wire:click="regenerateSummary({{ $material->id }})" 
-                                            class="inline-flex items-center gap-1 text-xs font-bold text-amber-600 hover:text-amber-700 dark:text-amber-400"
-                                        >
-                                            Process AI Summary
-                                        </button>
-                                    @endif
+                                    <button 
+                                        wire:click="downloadMaterial({{ $material->id }})" 
+                                        class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
+                                    >
+                                        <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                        </svg>
+                                        Download PDF
+                                    </button>
 
                                     <button 
                                         wire:click="deleteMaterial({{ $material->id }})" 
-                                        wire:confirm="Are you sure you want to delete this material?" 
+                                        wire:confirm="Are you sure you want to delete this course material?" 
                                         class="text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400"
                                     >
                                         Delete
@@ -769,12 +785,12 @@
     </div>
 
     <!-- MODAL 1: MATERIAL UPLOAD MODAL -->
-    @if($showMaterialUploadModal)
+    @if($showMaterialUploadModal || $errors->has('title') || $errors->has('material_file'))
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
             <div class="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-6">
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
                     <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">Upload Course Material (PDF Only)</h3>
-                    <button wire:click="$set('showMaterialUploadModal', false)" class="text-slate-400 hover:text-slate-600">&times;</button>
+                    <button wire:click="$set('showMaterialUploadModal', false)" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
                 </div>
 
                 <form wire:submit="uploadCourseMaterial" class="space-y-4">
@@ -784,39 +800,14 @@
                         @error('materialTitle') <span class="text-xs text-rose-500 mt-1 block font-semibold">{{ $message }}</span> @enderror
                     </div>
 
-                    <div 
-                        x-data="{ isUploading: false, progress: 0 }"
-                        x-on:livewire-upload-start="isUploading = true; progress = 0"
-                        x-on:livewire-upload-finish="isUploading = false; progress = 100"
-                        x-on:livewire-upload-error="isUploading = false"
-                        x-on:livewire-upload-progress="progress = $event.detail.progress"
-                    >
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">PDF File (Max {{ config('gemma.max_upload_size_mb', 20) }}MB)</label>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">PDF File (Max 20MB)</label>
                         <input 
-                            wire:model.live="materialFile" 
+                            wire:model="materialFile" 
                             type="file" 
-                            accept="application/pdf" 
+                            accept=".pdf,application/pdf" 
                             class="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-950 dark:file:text-indigo-300 cursor-pointer" 
                         />
-
-                        <!-- File Upload Progress Bar -->
-                        <div x-show="isUploading" x-cloak class="mt-2 space-y-1">
-                            <div class="flex items-center justify-between text-xs text-indigo-600 font-semibold">
-                                <span>Uploading PDF file to server...</span>
-                                <span x-text="progress + '%'"></span>
-                            </div>
-                            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
-                                <div class="bg-indigo-600 h-2 rounded-full transition-all duration-150" :style="'width: ' + progress + '%'"></div>
-                            </div>
-                        </div>
-
-                        @if($materialFile)
-                            <div class="mt-2 flex items-center gap-1.5 text-xs text-emerald-600 font-semibold">
-                                <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                <span>File ready for processing!</span>
-                            </div>
-                        @endif
-
                         @error('materialFile') <span class="text-xs text-rose-500 mt-1 block font-semibold">⚠️ {{ $message }}</span> @enderror
                     </div>
 
@@ -825,22 +816,24 @@
                         <button 
                             type="submit" 
                             wire:loading.attr="disabled"
-                            wire:target="materialFile uploadCourseMaterial"
+                            wire:target="materialFile, uploadCourseMaterial"
                             class="rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
                         >
-                            <svg wire:loading wire:target="materialFile uploadCourseMaterial" class="animate-spin size-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <svg wire:loading wire:target="materialFile, uploadCourseMaterial" class="animate-spin size-4 text-white" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                             </svg>
-                            <span wire:loading.remove wire:target="materialFile uploadCourseMaterial">Upload & Trigger AI Summary</span>
+                            <span wire:loading.remove wire:target="materialFile, uploadCourseMaterial">Upload Material</span>
                             <span wire:loading wire:target="materialFile">Uploading PDF...</span>
-                            <span wire:loading wire:target="uploadCourseMaterial">Saving & Starting AI...</span>
+                            <span wire:loading wire:target="uploadCourseMaterial">Saving...</span>
                         </button>
                     </div>
                 </form>
             </div>
         </div>
     @endif
+
+
 
     <!-- MODAL 2: PAST QUESTION UPLOAD MODAL -->
     @if($showPastQuestionModal)

@@ -123,46 +123,63 @@ class Show extends Component
 
     public function uploadCourseMaterial(): void
     {
+        if ($this->course->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $maxSizeMb = (int) config('gemma.max_upload_size_mb', 20);
         $maxKb = $maxSizeMb * 1024;
 
         $this->validate([
             'materialTitle' => 'required|string|max:255',
-            'materialFile' => "required|file|mimes:pdf|max:{$maxKb}",
+            'materialFile'  => "required|file|mimes:pdf|max:{$maxKb}",
         ], [
             'materialTitle.required' => 'Please enter a title for this course material.',
-            'materialFile.required' => 'Please select a PDF file and wait for the upload to complete before clicking submit.',
-            'materialFile.file' => 'The selected file could not be processed. Please try again.',
-            'materialFile.mimes' => 'Only PDF documents (.pdf) are allowed for course material uploads.',
-            'materialFile.max' => "The PDF file size must not exceed {$maxSizeMb} MB.",
+            'materialFile.required'  => 'Please select a PDF file to upload.',
+            'materialFile.file'      => 'The selected file could not be processed.',
+            'materialFile.mimes'     => 'Only PDF documents (.pdf) are allowed.',
+            'materialFile.max'       => "The PDF file size must not exceed {$maxSizeMb} MB.",
         ]);
 
-        $originalFilename = $this->materialFile->getClientOriginalName();
-        $fileSize = $this->materialFile->getSize();
-        $mimeType = $this->materialFile->getMimeType() ?: 'application/pdf';
+        try {
+            $originalFilename = $this->materialFile->getClientOriginalName();
+            $fileSize         = $this->materialFile->getSize();
+            $mimeType         = $this->materialFile->getMimeType() ?: 'application/pdf';
 
-        $storedPath = $this->materialFile->store('course_materials', 'public');
+            $userId   = auth()->id();
+            $courseId = $this->course->id;
+            $safeName = \Illuminate\Support\Str::slug(pathinfo($originalFilename, PATHINFO_FILENAME));
+            $uniqueFilename = \Illuminate\Support\Str::uuid() . '_' . ($safeName ?: 'document') . '.pdf';
+            $targetFolder   = "course_materials/{$userId}/{$courseId}";
 
-        $material = CourseMaterial::create([
-            'course_id' => $this->course->id,
-            'uploaded_by' => auth()->id(),
-            'title' => $this->materialTitle,
-            'original_filename' => $originalFilename,
-            'file' => $storedPath,
-            'mime_type' => $mimeType,
-            'file_size' => $fileSize,
-            'status' => 'processing',
-            'embedding_status' => 'pending',
-        ]);
+            $storedPath = $this->materialFile->storeAs($targetFolder, $uniqueFilename, 'public');
 
-        // Reset form & close modal
-        $this->reset(['materialTitle', 'materialFile']);
-        $this->showMaterialUploadModal = false;
+            if (!$storedPath) {
+                throw new \Exception('Storage write failed.');
+            }
 
-        // Automatically dispatch background AI processing pipeline
-        ExtractPdfTextJob::dispatch($material);
+            $material = CourseMaterial::create([
+                'course_id'         => $courseId,
+                'uploaded_by'       => $userId,
+                'title'             => $this->materialTitle,
+                'original_filename' => $originalFilename,
+                'file'              => $storedPath,
+                'mime_type'         => $mimeType,
+                'file_size'         => $fileSize,
+                'status'            => 'completed',
+                'embedding_status'  => 'completed',
+                'error_message'     => null,
+            ]);
 
-        session()->flash('message', 'PDF uploaded successfully! AI extraction & summary generation started in background.');
+            $this->reset(['materialTitle', 'materialFile']);
+            $this->showMaterialUploadModal = false;
+            $this->course->refresh();
+
+            session()->flash('message', 'Course material uploaded successfully!');
+        } catch (Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to upload material for course {$this->course->id}: " . $e->getMessage());
+            session()->flash('error', 'Could not save PDF file: ' . $e->getMessage());
+        }
     }
 
     public function uploadPastQuestion(): void
@@ -299,12 +316,45 @@ class Show extends Component
         session()->flash('message', 'Regenerating AI summary in background...');
     }
 
+    public function downloadMaterial(CourseMaterial $material)
+    {
+        if ($material->course->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $relativePath = $material->file;
+
+        if (\Illuminate\Support\Facades\Storage::disk('local')->exists($relativePath)) {
+            return \Illuminate\Support\Facades\Storage::disk('local')->download($relativePath, $material->original_filename);
+        }
+
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($relativePath)) {
+            return \Illuminate\Support\Facades\Storage::disk('public')->download($relativePath, $material->original_filename);
+        }
+
+        session()->flash('error', 'The requested PDF file could not be found on storage.');
+    }
+
     public function deleteMaterial(CourseMaterial $material): void
     {
-        $this->authorize('delete', $material);
-        $material->delete();
-        $this->course->refresh();
-        session()->flash('message', 'Course material deleted.');
+        if ($material->course->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        try {
+            if (\Illuminate\Support\Facades\Storage::disk('local')->exists($material->file)) {
+                \Illuminate\Support\Facades\Storage::disk('local')->delete($material->file);
+            } elseif (\Illuminate\Support\Facades\Storage::disk('public')->exists($material->file)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($material->file);
+            }
+
+            $material->delete();
+            $this->course->refresh();
+            session()->flash('message', 'Course material deleted successfully.');
+        } catch (Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to delete material ID {$material->id}: " . $e->getMessage());
+            session()->flash('error', 'Could not delete material file.');
+        }
     }
 
     public function deleteSummary(Summary $summary): void

@@ -40,9 +40,13 @@ class ExtractPdfTextJob implements ShouldQueue
 
             // Determine absolute path to file
             $relativeFile = $this->material->file;
-            $fullPath = Storage::disk('public')->exists($relativeFile)
-                ? Storage::disk('public')->path($relativeFile)
-                : storage_path('app/' . $relativeFile);
+            if (Storage::disk('local')->exists($relativeFile)) {
+                $fullPath = Storage::disk('local')->path($relativeFile);
+            } elseif (Storage::disk('public')->exists($relativeFile)) {
+                $fullPath = Storage::disk('public')->path($relativeFile);
+            } else {
+                $fullPath = storage_path('app/' . $relativeFile);
+            }
 
             if (!file_exists($fullPath)) {
                 throw new \Exception("File not found on storage at path: {$relativeFile}");
