@@ -20,11 +20,11 @@ return new class extends Migration
             $table->longText('html_content')->nullable();
             $table->longText('plain_text')->nullable();
             $table->string('pdf_path')->nullable();
-            $table->string('ai_model')->default('Gemma-2-9B-It')->index();
+            $table->string('ai_model')->default('gemma-4-31b-it')->index();
             $table->string('prompt_version')->default('v1.0');
             $table->enum('summary_type', ['short', 'detailed', 'bullet', 'exam_revision', 'flashcards'])->default('detailed')->index();
             $table->enum('difficulty', ['easy', 'medium', 'hard'])->default('medium')->index();
-            $table->string('generated_by')->default('Gemma-2-9B-It')->index();
+            $table->string('generated_by')->default('gemma-4-31b-it')->index();
             $table->timestamps();
             $table->softDeletes();
 

@@ -501,17 +501,7 @@
                                 @if($material->summary)
                                     <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
                                         <div class="flex items-center gap-2">
-                                            <button 
-                                                wire:click="viewSummary({{ $material->summary->id }})" 
-                                                class="inline-flex items-center gap-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 px-3 py-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition"
-                                            >
-                                                <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
-                                                View Summary
-                                            </button>
-
+                                            
                                             @if($material->summary->pdf_path)
                                                 <button 
                                                     wire:click="downloadSummary({{ $material->summary->id }})" 
@@ -890,7 +880,7 @@
     </div>
 
     <!-- MODAL 1: MATERIAL UPLOAD MODAL -->
-    @if($showMaterialUploadModal || $errors->has('materialTitle') || $errors->has('materialFile'))
+    @if($showMaterialUploadModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
             <div class="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-6">
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
@@ -906,7 +896,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">PDF File (Max 20MB)</label>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">PDF File (Max 5MB)</label>
                         <input 
                             wire:model.live="materialFile" 
                             type="file" 

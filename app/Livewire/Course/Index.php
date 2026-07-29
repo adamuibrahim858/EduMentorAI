@@ -113,6 +113,6 @@ class Index extends Component
 
         return view('livewire.course.index', [
             'courses' => $courses,
-        ])->layout('layouts.app', ['title' => 'My Courses']);
+        ])->layout('layouts.dashboard', ['title' => 'My Courses']);
     }
 }

@@ -1,6 +1,5 @@
-<x-layouts.dashboard title="Courses">
-    <div class="space-y-6">
-        {{-- Breadcrumb Navigation --}}
+<div class="space-y-6">
+    {{-- Breadcrumb Navigation --}}
         <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
             <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition">Dashboard</a>
             <svg class="size-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -161,7 +160,6 @@
                 </button>
             </div>
         @endif
-    </div>
 
     <!-- Create / Edit Course Modal -->
     @if($showModal)
@@ -230,4 +228,4 @@
             </div>
         </div>
     @endif
-</x-layouts.dashboard>
+</div>

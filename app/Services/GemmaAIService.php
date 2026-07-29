@@ -226,7 +226,7 @@ PROMPT;
                 return [
                     'success' => false,
                     'data' => null,
-                    'error' => 'Google Gemini API rate limit reached (HTTP 429). Please wait a few seconds and click Retry AI.'
+                    'error' => 'Gemma AI API rate limit reached (HTTP 429). Please wait a few seconds and click Retry AI.'
                 ];
             }
 

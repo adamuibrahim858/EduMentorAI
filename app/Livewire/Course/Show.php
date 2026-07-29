@@ -103,6 +103,32 @@ class Show extends Component
         $this->activeTab = $tab;
     }
 
+    public function updatedMaterialFile(): void
+    {
+        $this->resetErrorBag('materialFile');
+    }
+
+    public function updatedShowMaterialUploadModal($value): void
+    {
+        if (!$value) {
+            $this->resetErrorBag(['materialFile', 'materialTitle']);
+            $this->reset(['materialFile', 'materialTitle']);
+        }
+    }
+
+    public function updatedPastQuestionFile(): void
+    {
+        $this->resetErrorBag('pastQuestionFile');
+    }
+
+    public function updatedShowPastQuestionModal($value): void
+    {
+        if (!$value) {
+            $this->resetErrorBag(['pastQuestionFile', 'pastQuestionTitle', 'pastQuestionYear', 'pastQuestionSemester']);
+            $this->reset(['pastQuestionFile', 'pastQuestionTitle', 'pastQuestionYear', 'pastQuestionSemester']);
+        }
+    }
+
     public function updateCourseInfo(): void
     {
         $this->authorize('update', $this->course);
@@ -127,8 +153,9 @@ class Show extends Component
             abort(403, 'Unauthorized action.');
         }
 
-        $maxSizeMb = (int) config('gemma.max_upload_size_mb', 20);
-        $maxKb = $maxSizeMb * 1024;
+        // $maxSizeMb = (int) config('gemma.max_upload_size_mb', 20);
+        $maxKb = 3072;
+        $maxSizeMb = $maxKb / 1024;
 
         $this->validate([
             'materialTitle' => 'required|string|max:255',
