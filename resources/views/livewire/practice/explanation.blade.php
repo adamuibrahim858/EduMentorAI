@@ -56,76 +56,103 @@
             <div class="lg:col-span-4 lg:sticky lg:top-24 space-y-6">
 
                 {{-- Hero Score Card --}}
-                <div class="relative overflow-hidden rounded-3xl border shadow-xl transition-all duration-300
-                    {{ $passed
-                        ? 'border-emerald-200 dark:border-emerald-900 bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 text-white'
-                        : 'border-indigo-200 dark:border-indigo-900 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white' }}">
-
-                    {{-- Ambient Background Glows --}}
-                    <div class="absolute -right-12 -top-12 size-48 rounded-full {{ $passed ? 'bg-emerald-500/20' : 'bg-indigo-500/20' }} blur-2xl pointer-events-none"></div>
-
-                    <div class="relative z-10 p-6 space-y-6">
-
-                        <div class="text-center space-y-3">
-                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-white/10 text-white/90 border border-white/10 backdrop-blur-md">
-                                {{ $passed ? '🎉 Review Mode (Passed)' : '💡 Review Mode' }}
-                            </div>
-                            
-                            {{-- Circular Score Badge --}}
-                            <div class="mx-auto size-28 flex flex-col items-center justify-center rounded-3xl bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl">
-                                <span class="text-4xl font-black {{ $passed ? 'text-emerald-400' : 'text-amber-400' }}">{{ $pct }}<span class="text-xl">%</span></span>
-                                <span class="text-[10px] font-bold text-slate-300 uppercase tracking-wider mt-0.5">{{ $score }} / {{ $total }} Correct</span>
+                @if($passed)
+                    <div class="relative overflow-hidden rounded-3xl border border-emerald-200 dark:border-emerald-900 bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 text-white shadow-xl">
+                        <div class="absolute -right-12 -top-12 size-48 rounded-full bg-emerald-500/20 blur-2xl pointer-events-none"></div>
+                        <div class="relative z-10 p-6 space-y-6">
+                            <div class="text-center space-y-3">
+                                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-white/10 text-white/90 border border-white/10 backdrop-blur-md">
+                                    🎉 Review Mode (Passed)
+                                </div>
+                                <div class="mx-auto size-28 flex flex-col items-center justify-center rounded-3xl bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl">
+                                    <span class="text-4xl font-black text-emerald-400">{{ $pct }}<span class="text-xl">%</span></span>
+                                    <span class="text-[10px] font-bold text-slate-300 uppercase tracking-wider mt-0.5">{{ $score }} / {{ $total }} Correct</span>
+                                </div>
+                                <p class="text-xs text-slate-300 leading-relaxed">
+                                    Completed {{ $session->submitted_at ? $session->submitted_at->format('M d, Y @ h:i A') : 'recently' }}
+                                </p>
                             </div>
 
-                            <p class="text-xs text-slate-300 leading-relaxed">
-                                Completed {{ $session->submitted_at ? $session->submitted_at->format('M d, Y @ h:i A') : 'recently' }}
-                            </p>
-                        </div>
-
-                        {{-- Stats Row --}}
-                        <div class="grid grid-cols-3 gap-2.5 pt-2">
-                            <div class="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-3 text-center">
-                                <p class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Correct</p>
-                                <p class="text-xl font-black text-white mt-0.5">{{ $score }}</p>
-                            </div>
-                            <div class="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-3 text-center">
-                                <p class="text-[10px] font-bold text-rose-400 uppercase tracking-wider">Wrong</p>
-                                <p class="text-xl font-black text-white mt-0.5">{{ $total - $score }}</p>
-                            </div>
-                            <div class="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-3 text-center">
-                                <p class="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">Time</p>
-                                <p class="text-sm font-black text-white mt-1.5">{{ sprintf('%02d:%02d', $minutes, $seconds) }}</p>
+                            <div class="grid grid-cols-3 gap-2.5 pt-2">
+                                <div class="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-3 text-center">
+                                    <p class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Correct</p>
+                                    <p class="text-xl font-black text-white mt-0.5">{{ $score }}</p>
+                                </div>
+                                <div class="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-3 text-center">
+                                    <p class="text-[10px] font-bold text-rose-400 uppercase tracking-wider">Wrong</p>
+                                    <p class="text-xl font-black text-white mt-0.5">{{ $total - $score }}</p>
+                                </div>
+                                <div class="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-3 text-center">
+                                    <p class="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">Time</p>
+                                    <p class="text-sm font-black text-white mt-1.5">{{ sprintf('%02d:%02d', $minutes, $seconds) }}</p>
+                                </div>
                             </div>
                         </div>
-
                     </div>
-                </div>
+                @else
+                    <div class="relative overflow-hidden rounded-3xl border border-indigo-200 dark:border-indigo-900 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white shadow-xl">
+                        <div class="absolute -right-12 -top-12 size-48 rounded-full bg-indigo-500/20 blur-2xl pointer-events-none"></div>
+                        <div class="relative z-10 p-6 space-y-6">
+                            <div class="text-center space-y-3">
+                                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-white/10 text-white/90 border border-white/10 backdrop-blur-md">
+                                    💡 Review Mode
+                                </div>
+                                <div class="mx-auto size-28 flex flex-col items-center justify-center rounded-3xl bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl">
+                                    <span class="text-4xl font-black text-amber-400">{{ $pct }}<span class="text-xl">%</span></span>
+                                    <span class="text-[10px] font-bold text-slate-300 uppercase tracking-wider mt-0.5">{{ $score }} / {{ $total }} Correct</span>
+                                </div>
+                                <p class="text-xs text-slate-300 leading-relaxed">
+                                    Completed {{ $session->submitted_at ? $session->submitted_at->format('M d, Y @ h:i A') : 'recently' }}
+                                </p>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-2.5 pt-2">
+                                <div class="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-3 text-center">
+                                    <p class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Correct</p>
+                                    <p class="text-xl font-black text-white mt-0.5">{{ $score }}</p>
+                                </div>
+                                <div class="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-3 text-center">
+                                    <p class="text-[10px] font-bold text-rose-400 uppercase tracking-wider">Wrong</p>
+                                    <p class="text-xl font-black text-white mt-0.5">{{ $total - $score }}</p>
+                                </div>
+                                <div class="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-3 text-center">
+                                    <p class="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">Time</p>
+                                    <p class="text-sm font-black text-white mt-1.5">{{ sprintf('%02d:%02d', $minutes, $seconds) }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
 
                 {{-- Question Jump Shortcuts Card --}}
                 <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6 space-y-4">
                     <div class="flex items-center justify-between">
-                        <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Question Navigator</p>
-                        <span class="text-xs font-semibold text-slate-400">{{ $total }} Total</span>
+                        <p class="text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider">QUESTION NAVIGATOR</p>
+                        <span class="text-xs font-semibold text-slate-400 dark:text-slate-500">{{ $total }} Total</span>
                     </div>
 
                     <div class="flex flex-wrap gap-2.5">
                         @foreach($answers as $i => $answer)
-                            <a href="#question-{{ $i + 1 }}"
-                               class="size-10 rounded-xl border text-xs font-black transition flex items-center justify-center shrink-0 shadow-sm
-                               {{ $answer->is_correct
-                                   ? 'bg-emerald-500 text-white border-emerald-500 shadow-emerald-500/20 hover:bg-emerald-600'
-                                   : 'bg-rose-500 text-white border-rose-500 shadow-rose-500/20 hover:bg-rose-600' }}">
-                                {{ $i + 1 }}
-                            </a>
+                            @if($answer->is_correct)
+                                <a href="#question-{{ $i + 1 }}"
+                                   class="size-10 rounded-xl text-xs font-black transition flex items-center justify-center shrink-0 shadow-sm bg-emerald-500 text-white border border-emerald-500 hover:bg-emerald-600">
+                                    {{ $i + 1 }}
+                                </a>
+                            @else
+                                <a href="#question-{{ $i + 1 }}"
+                                   class="size-10 rounded-xl text-xs font-black transition flex items-center justify-center shrink-0 shadow-sm bg-rose-500 text-white border border-rose-500 hover:bg-rose-600">
+                                    {{ $i + 1 }}
+                                </a>
+                            @endif
                         @endforeach
                     </div>
 
-                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
+                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 font-bold">
                         <div class="flex items-center gap-2">
-                            <span class="size-3 rounded-sm bg-emerald-500"></span> Correct
+                            <span class="size-3.5 rounded-md bg-emerald-500 inline-block shadow-sm"></span> Correct
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="size-3 rounded-sm bg-rose-500"></span> Incorrect
+                            <span class="size-3.5 rounded-md bg-rose-500 inline-block shadow-sm"></span> Incorrect
                         </div>
                     </div>
                 </div>
@@ -133,7 +160,7 @@
                 {{-- Quick Actions --}}
                 <div class="flex flex-col gap-3">
                     <a href="{{ route('practices.quiz', $session->practice_set_id) }}"
-                       class="flex items-center justify-center gap-2 w-full rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 p-4 text-sm font-bold text-white shadow-lg shadow-indigo-600/30 transition hover:-translate-y-0.5">
+                       class="flex items-center justify-center gap-2 w-full rounded-2xl bg-indigo-600 hover:bg-indigo-700 p-4 text-sm font-bold text-white shadow-lg shadow-indigo-600/30 transition hover:-translate-y-0.5">
                         <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                         Retake Quiz
                     </a>
@@ -179,12 +206,15 @@
                         <div class="flex items-start justify-between gap-4 p-6 border-b border-slate-100 dark:border-slate-800/80">
                             <div class="flex items-start gap-4 min-w-0">
                                 {{-- Question Number Indicator --}}
-                                <div class="size-9 rounded-2xl flex items-center justify-center text-xs font-black shrink-0 shadow-sm
-                                    {{ $isCorrect
-                                        ? 'bg-emerald-500 text-white shadow-emerald-500/20'
-                                        : 'bg-rose-500 text-white shadow-rose-500/20' }}">
-                                    {{ $i + 1 }}
-                                </div>
+                                @if($isCorrect)
+                                    <div class="size-9 rounded-2xl flex items-center justify-center text-xs font-black shrink-0 shadow-sm bg-emerald-500 text-white border border-emerald-500">
+                                        {{ $i + 1 }}
+                                    </div>
+                                @else
+                                    <div class="size-9 rounded-2xl flex items-center justify-center text-xs font-black shrink-0 shadow-sm bg-rose-500 text-white border border-rose-500">
+                                        {{ $i + 1 }}
+                                    </div>
+                                @endif
 
                                 <div class="min-w-0 space-y-1">
                                     <div class="flex items-center gap-2 flex-wrap">
@@ -227,49 +257,48 @@
                                     $optLabel  = strtoupper($option->option_label);
                                     $isOpt     = $option->is_correct;
                                     $wasChosen = $optLabel === $userSel;
-
-                                    if ($isOpt) {
-                                        $boxStyle  = 'border-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 shadow-sm shadow-emerald-500/10';
-                                        $pillStyle = 'bg-emerald-500 text-white border-emerald-500';
-                                    } elseif ($wasChosen && !$isOpt) {
-                                        $boxStyle  = 'border-rose-400 bg-rose-50/60 dark:bg-rose-950/40 text-rose-950 dark:text-rose-100 shadow-sm shadow-rose-500/10';
-                                        $pillStyle = 'bg-rose-500 text-white border-rose-500';
-                                    } else {
-                                        $boxStyle  = 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 opacity-70';
-                                        $pillStyle = 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500';
-                                    }
                                 @endphp
 
-                                <div class="flex items-center justify-between gap-4 rounded-2xl border-2 px-4 py-3.5 text-sm font-semibold transition-all duration-200 {{ $boxStyle }}">
-                                    <div class="flex items-center gap-3.5 min-w-0">
-                                        <span class="size-8 rounded-xl border text-xs font-black flex items-center justify-center shrink-0 transition-all {{ $pillStyle }}">
-                                            @if($isOpt)
-                                                ✓
-                                            @elseif($wasChosen && !$isOpt)
-                                                ✕
-                                            @else
-                                                {{ $option->option_label }}
-                                            @endif
-                                        </span>
-                                        <span class="leading-relaxed truncate sm:whitespace-normal">{{ $option->option_text }}</span>
-                                    </div>
+                                @if($isOpt)
+                                    <div class="flex items-center justify-between gap-4 rounded-2xl border-2 px-4 py-3.5 text-sm font-semibold border-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 shadow-sm">
+                                        <div class="flex items-center gap-3.5 min-w-0">
+                                            <span class="size-8 rounded-xl border text-xs font-black flex items-center justify-center shrink-0 bg-emerald-500 text-white border-emerald-500">✓</span>
+                                            <span class="leading-relaxed truncate sm:whitespace-normal">{{ $option->option_text }}</span>
+                                        </div>
 
-                                    <div class="shrink-0">
-                                        @if($isOpt && $wasChosen)
-                                            <span class="inline-flex items-center gap-1 rounded-full bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 shadow-sm">
-                                                Your Choice & Correct
-                                            </span>
-                                        @elseif($isOpt)
-                                            <span class="inline-flex items-center gap-1 rounded-full bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 shadow-sm">
-                                                Correct Answer
-                                            </span>
-                                        @elseif($wasChosen)
+                                        <div class="shrink-0">
+                                            @if($wasChosen)
+                                                <span class="inline-flex items-center gap-1 rounded-full bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 shadow-sm">
+                                                    Your Choice & Correct
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center gap-1 rounded-full bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 shadow-sm">
+                                                    Correct Answer
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @elseif($wasChosen && !$isOpt)
+                                    <div class="flex items-center justify-between gap-4 rounded-2xl border-2 px-4 py-3.5 text-sm font-semibold border-rose-400 bg-rose-50/60 dark:bg-rose-950/40 text-rose-950 dark:text-rose-100 shadow-sm">
+                                        <div class="flex items-center gap-3.5 min-w-0">
+                                            <span class="size-8 rounded-xl border text-xs font-black flex items-center justify-center shrink-0 bg-rose-500 text-white border-rose-500">✕</span>
+                                            <span class="leading-relaxed truncate sm:whitespace-normal">{{ $option->option_text }}</span>
+                                        </div>
+
+                                        <div class="shrink-0">
                                             <span class="inline-flex items-center gap-1 rounded-full bg-rose-500 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 shadow-sm">
                                                 Your Choice
                                             </span>
-                                        @endif
+                                        </div>
                                     </div>
-                                </div>
+                                @else
+                                    <div class="flex items-center justify-between gap-4 rounded-2xl border-2 px-4 py-3.5 text-sm font-semibold border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 opacity-70">
+                                        <div class="flex items-center gap-3.5 min-w-0">
+                                            <span class="size-8 rounded-xl border text-xs font-black flex items-center justify-center shrink-0 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500">{{ $option->option_label }}</span>
+                                            <span class="leading-relaxed truncate sm:whitespace-normal">{{ $option->option_text }}</span>
+                                        </div>
+                                    </div>
+                                @endif
                                 @endforeach
                             </div>
 
