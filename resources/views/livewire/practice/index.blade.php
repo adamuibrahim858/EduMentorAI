@@ -43,7 +43,7 @@
             <button wire:click="openGenerateModal" class="rounded-2xl bg-indigo-600 hover:bg-indigo-700 px-5 py-2.5 text-sm font-bold text-white shadow transition">Generate Your First Quiz</button>
         </div>
     @else
-        <div class="space-y-4">
+        <div class="space-y-4" @if($practiceSets->contains(fn($s) => in_array($s->status, ['pending_ai', 'generating']))) wire:poll.5s @endif>
             @foreach($practiceSets as $set)
             <div class="group flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-3xl border
                 {{ $set->status === 'ready' ? 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900' : ($set->status === 'failed' ? 'border-rose-200 dark:border-rose-900 bg-rose-50/30 dark:bg-rose-950/10' : 'border-indigo-200 dark:border-indigo-900 bg-indigo-50/20 dark:bg-indigo-950/10') }}

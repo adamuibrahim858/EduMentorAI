@@ -58,15 +58,30 @@ class GeneratePracticeJob implements ShouldQueue
                 throw new \Exception($result['error'] ?? 'Gemma AI returned an empty response.');
             }
 
-            // Strip any markdown code fences the model may have wrapped around JSON
-            $rawJson = trim($result['data']);
-            $rawJson = preg_replace('/^```(?:json)?\s*/i', '', $rawJson);
-            $rawJson = preg_replace('/\s*```$/', '', $rawJson);
+            // --- Parse AI response: try JSON first, then fall back to Markdown bullet-point format ---
+            $rawText = trim($result['data']);
 
-            $questionsData = json_decode($rawJson, true);
+            // 1. Try to extract a JSON array between the first '[' and last ']'
+            $firstBracket = strpos($rawText, '[');
+            $lastBracket  = strrpos($rawText, ']');
+
+            $questionsData = null;
+            if ($firstBracket !== false && $lastBracket !== false && ($lastBracket - $firstBracket) > 10) {
+                $rawJson = substr($rawText, $firstBracket, ($lastBracket - $firstBracket + 1));
+                $decoded = json_decode($rawJson, true);
+                if (is_array($decoded) && count($decoded) > 0 && isset($decoded[0]['question'])) {
+                    $questionsData = $decoded;
+                }
+            }
+
+            // 2. Fallback: Parse Gemma's bullet-point Markdown format
+            // Pattern: * Question N: ...\n * Options: A) ..., B) ..., C) ..., D) ...\n * Correct: X\n * Topic: ...\n
+            if (empty($questionsData)) {
+                $questionsData = $this->parseMarkdownQuestions($rawText);
+            }
 
             if (!is_array($questionsData) || empty($questionsData)) {
-                throw new \Exception('AI response could not be parsed as valid JSON: ' . Str::limit($rawJson, 200));
+                throw new \Exception('AI response could not be parsed as valid JSON or Markdown: ' . Str::limit($rawText, 200));
             }
 
             // Persist questions + options
@@ -124,5 +139,97 @@ class GeneratePracticeJob implements ShouldQueue
                 'error_message' => $e->getMessage(),
             ]);
         }
+    }
+
+    /**
+     * Parse Gemma's Markdown bullet-point response format into structured question objects.
+     *
+     * Handles output like:
+     *  * Question 1: What is a computer?
+     *  * Options: A) Electronic device, B) Mechanical device, C) ..., D) ...
+     *  * Correct: A
+     *  * Topic: Definition
+     *  * Explanation: ...
+     */
+    private function parseMarkdownQuestions(string $rawText): array
+    {
+        $questions = [];
+
+        // Split into lines and process
+        $lines = explode("\n", $rawText);
+
+        $currentQuestion = null;
+
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (empty($line)) continue;
+
+            // Strip leading bullet markers: *, -, •, numbers, bold formatting
+            $clean = preg_replace('/^[\*\-•\s]+/', '', $line);
+            $clean = trim($clean, '* ');
+            $clean = preg_replace('/^\d+[\.\)]\s*/', '', $clean);
+
+            // Question line: "Question N: text" or "*Question N (Topic):* text" or "Question: text"
+            if (preg_match('/^Question\s*\d*\s*(?:\([^\)]+\))?\s*[:\-]\s*(.+)/i', $clean, $m)) {
+                if ($currentQuestion && !empty($currentQuestion['question'])) {
+                    $questions[] = $currentQuestion;
+                }
+                $qText = trim(trim($m[1]), '* ');
+                $currentQuestion = [
+                    'question'       => $qText,
+                    'topic'          => '',
+                    'options'        => [],
+                    'correct_answer' => 'A',
+                    'explanation'    => '',
+                ];
+                continue;
+            }
+
+            if (!$currentQuestion) continue;
+
+            // Options line: "Options: A) text, B) text, C) text, D) text"
+            if (preg_match('/^Options?\s*:\s*(.+)/i', $clean, $m)) {
+                $optStr = $m[1];
+                preg_match_all('/([A-D])\)\s*((?:(?![A-D]\)).)+)/i', $optStr, $optMatches, PREG_SET_ORDER);
+                foreach ($optMatches as $om) {
+                    $currentQuestion['options'][strtoupper($om[1])] = trim(rtrim(trim($om[2]), '.,'));
+                }
+                continue;
+            }
+
+            // Standalone option lines: "Option A: text" or "A) text" or "A: text"
+            if (preg_match('/^(?:Option\s*)?([A-D])[\:\)]\s*(.+)/i', $clean, $m) && empty($currentQuestion['options'][strtoupper($m[1])])) {
+                $currentQuestion['options'][strtoupper($m[1])] = trim(rtrim(trim($m[2]), '.,'));
+                continue;
+            }
+
+            // Correct answer line: "Correct: A" or "Correct Answer: B"
+            if (preg_match('/^Correct(?:\s+Answer)?\s*[:\-]\s*([A-D])/i', $clean, $m)) {
+                $currentQuestion['correct_answer'] = strtoupper($m[1]);
+                continue;
+            }
+
+            // Topic line
+            if (preg_match('/^Topic\s*:\s*(.+)/i', $clean, $m)) {
+                $currentQuestion['topic'] = trim(trim($m[1]), '* ');
+                continue;
+            }
+
+            // Explanation line
+            if (preg_match('/^Explanation\s*:\s*(.+)/i', $clean, $m)) {
+                $currentQuestion['explanation'] = trim(trim($m[1]), '* ');
+                continue;
+            }
+        }
+
+        // Flush last question
+        if ($currentQuestion && !empty($currentQuestion['question'])) {
+            $questions[] = $currentQuestion;
+        }
+
+        // Only return questions that have at least 2 options and a question text
+        return array_values(array_filter($questions, fn($q) =>
+            !empty($q['question']) && count($q['options'] ?? []) >= 2
+        ));
     }
 }

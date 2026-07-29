@@ -18,7 +18,7 @@ return [
 
     'endpoint' => env('GEMMA_API_ENDPOINT', 'https://generativelanguage.googleapis.com/v1beta/models'),
 
-    'timeout' => (int) env('GEMMA_TIMEOUT', 60),
+    'timeout' => (int) env('GEMMA_TIMEOUT', 120),
 
     'max_upload_size_mb' => (int) env('MAX_PDF_UPLOAD_SIZE_MB', 20),
 ];

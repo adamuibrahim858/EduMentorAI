@@ -84,14 +84,10 @@ class Index extends Component
             ],
         ]);
 
-        GeneratePracticeJob::dispatchSync($practiceSet);
+        GeneratePracticeJob::dispatch($practiceSet);
 
         $this->showGenerateModal = false;
-        if ($practiceSet->fresh()->status === 'ready') {
-            session()->flash('quiz_generating', "🎉 Quiz generated successfully! Click 'Start Quiz' to test your knowledge.");
-        } else {
-            session()->flash('quiz_generating', "⚠️ AI generation completed with status: " . $practiceSet->fresh()->statusLabel());
-        }
+        session()->flash('quiz_generating', '🎉 AI Practice Quiz generation started! Questions are being generated in the background.');
     }
 
     public ?string $startedAt        = null;
@@ -195,8 +191,8 @@ class Index extends Component
 
         $ps->questions()->delete();
         $ps->update(['status' => 'pending_ai', 'error_message' => null, 'total_questions' => 0]);
-        GeneratePracticeJob::dispatchSync($ps);
-        session()->flash('quiz_generating', 'AI question generation completed!');
+        GeneratePracticeJob::dispatch($ps);
+        session()->flash('quiz_generating', '⏳ AI question generation restarted! Processing in the background...');
     }
 
     // ── Delete a practice set ─────────────────────────────────

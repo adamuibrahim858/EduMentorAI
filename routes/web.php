@@ -55,6 +55,9 @@ Route::middleware(['auth', 'verified', 'active.account'])->group(function (): vo
     Route::get('/routine', RoutineIndex::class)->name('routine');
     Route::get('/routines', RoutineIndex::class)->name('routines.index');
 
+    // AI Chat Assistant
+    Route::get('/chat/assistant', \App\Livewire\Chat\Assistant::class)->name('chat.assistant');
+
 
     // Course Management
     Route::get('/courses', CourseIndex::class)->name('courses.index');

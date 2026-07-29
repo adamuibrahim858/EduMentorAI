@@ -142,6 +142,54 @@
         </a>
     </nav>
 
+    {{-- AI Assistant CTA — sits above the Collapse Sidebar footer --}}
+    <div class="px-3 pb-3 shrink-0 border-t border-slate-100 dark:border-slate-800/60 pt-3">
+
+        {{-- Expanded state: full-width pill button --}}
+        <a
+            x-show="!sidebarCollapsed || mobileSidebarOpen"
+            href="{{ route('chat.assistant') }}"
+            class="relative flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold transition-all duration-200 overflow-hidden
+                {{ request()->routeIs('chat.*')
+                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30'
+                    : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30 hover:from-indigo-700 hover:to-purple-700 hover:-translate-y-0.5 active:translate-y-0' }}"
+            title="AI Assistant"
+        >
+            {{-- Shimmer overlay --}}
+            <span class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.15),transparent)] pointer-events-none"></span>
+
+            {{-- Sparkle icon --}}
+            <span class="relative flex size-8 shrink-0 items-center justify-center rounded-xl bg-white/20">
+                <svg class="size-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+                </svg>
+            </span>
+
+            <span class="relative flex-1 text-left">
+                <span class="block text-xs font-extrabold leading-tight">EduMentor AI</span>
+                <span class="block text-[10px] font-medium text-indigo-200 leading-tight">Ask me anything</span>
+            </span>
+
+            {{-- Sparkle badge --}}
+            <svg class="relative size-4 text-amber-300 animate-pulse shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2z"/>
+            </svg>
+        </a>
+
+        {{-- Collapsed state: icon-only circle button --}}
+        <a
+            x-show="sidebarCollapsed && !mobileSidebarOpen"
+            href="{{ route('chat.assistant') }}"
+            class="relative flex size-[44px] mx-auto items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30 hover:scale-110 active:scale-95 transition-all duration-200"
+            title="AI Assistant"
+        >
+            <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+            </svg>
+            <span class="absolute -top-1 -right-1 size-3 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900"></span>
+        </a>
+    </div>
+
     <!-- Desktop Collapse Toggle Button Footer -->
     <div class="hidden lg:flex items-center justify-between border-t border-slate-100 p-3.5 dark:border-slate-800/60 shrink-0">
         <button 
