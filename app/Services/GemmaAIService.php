@@ -81,14 +81,42 @@ SYS;
         $userPrompt = <<<PROMPT
 Generate exactly {$count} multiple-choice questions at {$difficulty} difficulty level from the course material below.
 
-Return ONLY a valid JSON array. No other text. Format:
-[{"question":"...","topic":"...","options":{"A":"...","B":"...","C":"...","D":"..."},"correct_answer":"A","explanation":"..."}]
+Return only the JSON array itself. Start the response with [ and end it with ].
+Do not describe the task, schema, role, difficulty, or source material.
+Every question must have real question text, four real options labeled A, B, C, D, one correct_answer letter, a topic, and an explanation.
 
 --- COURSE MATERIAL ---
 {$content}
 PROMPT;
 
-        return $this->generateContentWithSystem($systemInstruction, $userPrompt);
+        return $this->generateContentWithSystem($systemInstruction, $userPrompt, null, $this->practiceQuestionsJsonSchema());
+    }
+
+    private function practiceQuestionsJsonSchema(): array
+    {
+        return [
+            'type' => 'ARRAY',
+            'items' => [
+                'type' => 'OBJECT',
+                'properties' => [
+                    'question' => ['type' => 'STRING'],
+                    'topic' => ['type' => 'STRING'],
+                    'options' => [
+                        'type' => 'OBJECT',
+                        'properties' => [
+                            'A' => ['type' => 'STRING'],
+                            'B' => ['type' => 'STRING'],
+                            'C' => ['type' => 'STRING'],
+                            'D' => ['type' => 'STRING'],
+                        ],
+                        'required' => ['A', 'B', 'C', 'D'],
+                    ],
+                    'correct_answer' => ['type' => 'STRING', 'enum' => ['A', 'B', 'C', 'D']],
+                    'explanation' => ['type' => 'STRING'],
+                ],
+                'required' => ['question', 'topic', 'options', 'correct_answer', 'explanation'],
+            ],
+        ];
     }
 
     /**
@@ -139,7 +167,7 @@ PROMPT;
     /**
      * Generate a general AI response using Gemma 4 model with system instructions and chat history.
      */
-    protected function generateContentWithSystem(string $systemInstruction, string $userPrompt, ?string $targetModel = null): array
+    protected function generateContentWithSystem(string $systemInstruction, string $userPrompt, ?string $targetModel = null, ?array $responseSchema = null): array
     {
         if (empty($this->apiKey)) {
             Log::warning('GemmaAIService: GEMMA_AI_API_KEY is not configured in .env file.');
@@ -172,13 +200,18 @@ PROMPT;
                 ]
             ];
 
+            if ($responseSchema) {
+                $payload['generationConfig']['responseMimeType'] = 'application/json';
+                $payload['generationConfig']['responseSchema'] = $responseSchema;
+            }
+
             $response = Http::timeout($this->timeout)
                 ->withHeaders(['Content-Type' => 'application/json'])
                 ->post($url, $payload);
 
             if ($response->successful()) {
                 $responseData  = $response->json();
-                $generatedText = $responseData['candidates'][0]['content']['parts'][0]['text'] ?? null;
+                $generatedText = $this->extractGeneratedText($responseData);
 
                 if (empty($generatedText)) {
                     Log::warning('GemmaAIService::generateContentWithSystem: Empty response.', ['response' => $responseData]);
@@ -199,14 +232,14 @@ PROMPT;
                 Log::error("GemmaAIService::generateContentWithSystem: Quota exceeded (HTTP {$status}) on {$activeModel}.", ['body' => $responseBody]);
                 if ($activeModel !== $this->fallbackModel) {
                     sleep(1);
-                    return $this->generateContentWithSystem($systemInstruction, $userPrompt, $this->fallbackModel);
+                    return $this->generateContentWithSystem($systemInstruction, $userPrompt, $this->fallbackModel, $responseSchema);
                 }
                 return ['success' => false, 'data' => null, 'error' => "Your AI request couldn't be completed because the daily Gemma 4 quota has been reached. Please try again later when the quota resets."];
             }
 
             if ($activeModel !== $this->fallbackModel && in_array($status, [400, 404])) {
                 Log::info("GemmaAIService::generateContentWithSystem: HTTP {$status} on {$activeModel}. Retrying with fallback.");
-                return $this->generateContentWithSystem($systemInstruction, $userPrompt, $this->fallbackModel);
+                return $this->generateContentWithSystem($systemInstruction, $userPrompt, $this->fallbackModel, $responseSchema);
             }
 
             $errorMessage = $response->json('error.message') ?? "HTTP {$status}: {$responseBody}";
@@ -214,14 +247,16 @@ PROMPT;
             return ['success' => false, 'data' => null, 'error' => "Gemma AI API Error ({$status}): {$errorMessage}"];
 
         } catch (Throwable $e) {
-            Log::error('GemmaAIService::generateContentWithSystem Exception', ['message' => $e->getMessage(), 'model' => $activeModel]);
+            $message = $this->sanitizeApiKey($e->getMessage());
+
+            Log::error('GemmaAIService::generateContentWithSystem Exception', ['message' => $message, 'model' => $activeModel]);
 
             if ($activeModel !== $this->fallbackModel) {
                 Log::info("GemmaAIService::generateContentWithSystem: Retrying with fallback model {$this->fallbackModel}.");
-                return $this->generateContentWithSystem($systemInstruction, $userPrompt, $this->fallbackModel);
+                return $this->generateContentWithSystem($systemInstruction, $userPrompt, $this->fallbackModel, $responseSchema);
             }
 
-            return ['success' => false, 'data' => null, 'error' => 'AI Service Connection Exception: ' . $e->getMessage()];
+            return ['success' => false, 'data' => null, 'error' => 'AI Service Connection Exception: ' . $message];
         }
     }
 
@@ -246,11 +281,17 @@ PROMPT;
         // Map chat messages into Gemini API turns
         $contents = [];
         foreach ($messages as $msg) {
+            $text = trim((string) ($msg['content'] ?? ''));
+
+            if ($text === '' || $this->shouldSkipChatContextMessage($msg['role'] ?? 'user', $text)) {
+                continue;
+            }
+
             $role = ($msg['role'] === 'assistant' || $msg['role'] === 'model') ? 'model' : 'user';
             $contents[] = [
                 'role'  => $role,
                 'parts' => [
-                    ['text' => $msg['content']]
+                    ['text' => $text]
                 ]
             ];
         }
@@ -268,6 +309,9 @@ PROMPT;
                     'topK'            => 40,
                     'topP'            => 0.95,
                     'maxOutputTokens' => 8192,
+                    'thinkingConfig'  => [
+                        'thinkingLevel' => 'minimal',
+                    ],
                 ]
             ];
 
@@ -279,7 +323,7 @@ PROMPT;
 
             if ($response->successful()) {
                 $responseData = $response->json();
-                $generatedText = $responseData['candidates'][0]['content']['parts'][0]['text'] ?? null;
+                $generatedText = $this->extractGeneratedText($responseData);
 
                 if (empty($generatedText)) {
                     Log::warning('GemmaAIService: Received empty response from API.', ['response' => $responseData]);
@@ -293,7 +337,7 @@ PROMPT;
 
                 return [
                     'success' => true,
-                    'data' => trim($generatedText),
+                    'data' => $this->extractChatFinalAnswer($generatedText),
                     'model' => $activeModel,
                     'quota_exceeded' => false,
                     'error' => null
@@ -349,8 +393,10 @@ PROMPT;
             ];
 
         } catch (Throwable $e) {
+            $message = $this->sanitizeApiKey($e->getMessage());
+
             Log::error('GemmaAIService Exception in generateGeneralChatResponse', [
-                'message' => $e->getMessage(),
+                'message' => $message,
                 'model' => $activeModel,
             ]);
 
@@ -363,9 +409,87 @@ PROMPT;
                 'success' => false,
                 'data' => null,
                 'quota_exceeded' => false,
-                'error' => 'AI Service Connection Exception: ' . $e->getMessage()
+                'error' => 'AI Service Connection Exception: ' . $message
             ];
         }
+    }
+
+    private function extractGeneratedText(?array $responseData): ?string
+    {
+        $parts = $responseData['candidates'][0]['content']['parts'] ?? [];
+        if (!is_array($parts)) {
+            return null;
+        }
+
+        $textParts = [];
+        foreach ($parts as $part) {
+            if (!empty($part['thought'])) {
+                continue;
+            }
+
+            $text = trim((string) ($part['text'] ?? ''));
+            if ($text !== '') {
+                $textParts[] = $text;
+            }
+        }
+
+        return empty($textParts) ? null : implode("\n\n", $textParts);
+    }
+
+    private function sanitizeApiKey(string $message): string
+    {
+        if ($this->apiKey === '') {
+            return $message;
+        }
+
+        return str_replace($this->apiKey, '[redacted]', $message);
+    }
+
+    private function shouldSkipChatContextMessage(string $role, string $text): bool
+    {
+        $role = strtolower($role);
+
+        if (!in_array($role, ['assistant', 'model'], true)) {
+            return false;
+        }
+
+        return str_contains($text, 'Welcome to EduMentor AI.')
+            || str_contains($text, "I'm your AI learning assistant powered by Gemma 4.")
+            || str_starts_with($text, "An error occurred while connecting to EduMentor AI.")
+            || str_starts_with($text, 'Sorry, EduMentor AI encountered an issue processing your request.');
+    }
+
+    private function extractChatFinalAnswer(string $text): string
+    {
+        $text = trim($text);
+
+        if (str_contains($text, '<channel|>')) {
+            $parts = explode('<channel|>', $text);
+            $text = trim((string) end($parts));
+        }
+
+        $quotedFinal = null;
+        if (preg_match_all('/"([^"\n]{20,})"/', $text, $matches) && !empty($matches[1])) {
+            $quotedFinal = trim((string) end($matches[1]));
+        }
+
+        if ($quotedFinal && $this->looksLikeChatPlanningText($text)) {
+            return $quotedFinal;
+        }
+
+        return $text;
+    }
+
+    private function looksLikeChatPlanningText(string $text): bool
+    {
+        $lowerText = strtolower($text);
+
+        return str_contains($lowerText, 'user says:')
+            || str_contains($lowerText, 'user asks:')
+            || str_contains($lowerText, 'persona:')
+            || str_contains($lowerText, 'constraints:')
+            || str_contains($lowerText, 'draft 1')
+            || str_contains($lowerText, 'goal: respond naturally');
     }
 
     /**
@@ -410,7 +534,7 @@ PROMPT;
 
             if ($response->successful()) {
                 $responseData = $response->json();
-                $generatedText = $responseData['candidates'][0]['content']['parts'][0]['text'] ?? null;
+                $generatedText = $this->extractGeneratedText($responseData);
 
                 if (empty($generatedText)) {
                     Log::warning('GemmaAIService: Received empty response from API.', ['response' => $responseData]);
@@ -464,8 +588,10 @@ PROMPT;
             ];
 
         } catch (Throwable $e) {
+            $message = $this->sanitizeApiKey($e->getMessage());
+
             Log::error('GemmaAIService Exception in generateContent', [
-                'message' => $e->getMessage(),
+                'message' => $message,
                 'model' => $activeModel,
             ]);
 
@@ -477,7 +603,7 @@ PROMPT;
             return [
                 'success' => false,
                 'data' => null,
-                'error' => 'AI Service Connection Exception: ' . $e->getMessage()
+                'error' => 'AI Service Connection Exception: ' . $message
             ];
         }
     }

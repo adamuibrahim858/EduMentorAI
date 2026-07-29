@@ -84,6 +84,14 @@ class GeneratePracticeJob implements ShouldQueue
                 throw new \Exception('AI response could not be parsed as valid JSON or Markdown: ' . Str::limit($rawText, 200));
             }
 
+            $questionsData = array_values(array_filter($questionsData, fn($qData) => $this->isValidGeneratedQuestion($qData)));
+
+            if (count($questionsData) < $count) {
+                throw new \Exception("AI response only contained " . count($questionsData) . " valid questions out of {$count} requested.");
+            }
+
+            $questionsData = array_slice($questionsData, 0, $count);
+
             // Persist questions + options
             $objectiveCount = 0;
             foreach ($questionsData as $qData) {
@@ -231,5 +239,46 @@ class GeneratePracticeJob implements ShouldQueue
         return array_values(array_filter($questions, fn($q) =>
             !empty($q['question']) && count($q['options'] ?? []) >= 2
         ));
+    }
+
+    private function isValidGeneratedQuestion(mixed $qData): bool
+    {
+        if (!is_array($qData)) {
+            return false;
+        }
+
+        $questionText = trim((string) ($qData['question'] ?? ''));
+        $correctKey = strtoupper(trim((string) ($qData['correct_answer'] ?? '')));
+        $options = $qData['options'] ?? [];
+
+        if ($this->isPlaceholderText($questionText) || !in_array($correctKey, ['A', 'B', 'C', 'D'], true)) {
+            return false;
+        }
+
+        if (!is_array($options)) {
+            return false;
+        }
+
+        foreach (['A', 'B', 'C', 'D'] as $label) {
+            if (!array_key_exists($label, $options) || $this->isPlaceholderText((string) $options[$label])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function isPlaceholderText(string $value): bool
+    {
+        $value = trim($value);
+
+        return $value === ''
+            || $value === '...'
+            || strcasecmp($value, 'question') === 0
+            || strcasecmp($value, 'option') === 0
+            || strcasecmp($value, 'first option text') === 0
+            || strcasecmp($value, 'second option text') === 0
+            || strcasecmp($value, 'third option text') === 0
+            || strcasecmp($value, 'fourth option text') === 0;
     }
 }
