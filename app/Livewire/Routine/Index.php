@@ -4,7 +4,6 @@ namespace App\Livewire\Routine;
 
 use App\Models\Course;
 use App\Models\StudyRoutine;
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Throwable;
@@ -15,25 +14,32 @@ class Index extends Component
     // ----------------------------------------------------------------
     // Form fields
     // ----------------------------------------------------------------
-    public ?int    $editingId        = null;
-    public int     $course_id        = 0;
-    public string  $title            = '';
-    public string  $study_day        = 'monday';
-    public string  $start_time       = '08:00';
-    public string  $end_time         = '10:00';
-    public int     $study_duration   = 90;
+    public ?int    $editingId         = null;
+    public int     $course_id         = 0;
+    public string  $title             = '';
+    public string  $study_day         = 'monday';
+    public string  $start_time        = '08:00';
+    public string  $end_time          = '10:00';
+    public int     $study_duration    = 90;
     public int     $practice_duration = 30;
-    public string  $repeat_type      = 'weekly';
-    public int     $reminder_before  = 15;
-    public bool    $status           = true;
+    public string  $repeat_type       = 'weekly';
+    public int     $reminder_before   = 15;
+    public bool    $status            = true;
 
     // ----------------------------------------------------------------
     // UI state
     // ----------------------------------------------------------------
-    public bool $showModal  = false;
-    public bool $showDelete = false;
-    public ?int $deleteId   = null;
-    public string $activeTab = 'all'; // all | today | upcoming
+    public bool   $showModal  = false;
+    public bool   $showDelete = false;
+    public ?int   $deleteId   = null;
+    public string $activeTab  = 'all'; // all | today | upcoming
+
+    public function setTab(string $tab): void
+    {
+        if (in_array($tab, ['all', 'today', 'upcoming'])) {
+            $this->activeTab = $tab;
+        }
+    }
 
     // ----------------------------------------------------------------
     // Validation rules
@@ -49,7 +55,7 @@ class Index extends Component
             'study_duration'    => ['required', 'integer', 'min:15', 'max:480'],
             'practice_duration' => ['required', 'integer', 'min:0', 'max:240'],
             'repeat_type'       => ['required', 'in:daily,weekly,custom'],
-            'reminder_before'   => ['required', 'integer', 'in:5,10,15,30,60'],
+            'reminder_before'   => ['nullable', 'integer'],
             'status'            => ['boolean'],
         ];
     }
@@ -66,8 +72,23 @@ class Index extends Component
     public function openCreate(): void
     {
         $this->resetForm();
+
+        $firstCourse = Course::where('user_id', auth()->id())
+            ->where('status', 'active')
+            ->first();
+
+        if ($firstCourse) {
+            $this->course_id = $firstCourse->id;
+        }
+
         $this->editingId = null;
         $this->showModal = true;
+    }
+
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetForm();
     }
 
     // ----------------------------------------------------------------
@@ -99,27 +120,24 @@ class Index extends Component
     {
         $this->validate();
 
-        // Overlap check: same user, same day, same time range (excluding self)
-        $overlaps = $this->checkOverlap();
-
-        if ($overlaps) {
+        if ($this->status && $this->checkOverlap()) {
             $this->addError('start_time', 'This time slot overlaps with an existing routine on the same day.');
             return;
         }
 
         try {
             $data = [
-                'user_id'          => auth()->id(),
-                'course_id'        => $this->course_id,
-                'title'            => $this->title,
-                'study_day'        => $this->study_day,
-                'start_time'       => $this->start_time,
-                'end_time'         => $this->end_time,
-                'study_duration'   => $this->study_duration,
-                'practice_duration'=> $this->practice_duration,
-                'repeat_type'      => $this->repeat_type,
-                'reminder_before'  => $this->reminder_before,
-                'status'           => $this->status,
+                'user_id'           => auth()->id(),
+                'course_id'         => $this->course_id,
+                'title'             => $this->title,
+                'study_day'         => $this->study_day,
+                'start_time'        => $this->start_time,
+                'end_time'          => $this->end_time,
+                'study_duration'    => $this->study_duration,
+                'practice_duration' => $this->practice_duration,
+                'repeat_type'       => $this->repeat_type,
+                'reminder_before'   => $this->reminder_before ?: 15,
+                'status'            => true,
             ];
 
             if ($this->editingId) {
@@ -132,8 +150,7 @@ class Index extends Component
                 session()->flash('success', 'Routine created successfully!');
             }
 
-            $this->showModal = false;
-            $this->resetForm();
+            $this->closeModal();
 
         } catch (Throwable $e) {
             session()->flash('error', 'Failed to save routine: ' . $e->getMessage());
@@ -152,7 +169,6 @@ class Index extends Component
                   ->orWhere('repeat_type', 'daily');
             })
             ->where(function ($q) {
-                // Overlaps when: new start < existing end AND new end > existing start
                 $q->where('start_time', '<', $this->end_time)
                   ->where('end_time', '>', $this->start_time);
             });
@@ -237,14 +253,38 @@ class Index extends Component
             ->orderBy('start_time')
             ->get();
 
-        $todayRoutines = $allRoutines->filter(fn($r) => $r->isToday());
+        $todayName = strtolower(now()->format('l'));
+        $todayRoutines = $allRoutines->filter(function ($routine) use ($todayName) {
+            return $routine->repeat_type === 'daily' || strtolower($routine->study_day) === $todayName;
+        })->sortBy('start_time');
 
-        $upcomingRoutines = StudyRoutine::with('course')
-            ->forUser($userId)
-            ->active()
-            ->upcoming()
-            ->orderBy('start_time')
-            ->get();
+        // Chronological upcoming days starting from Tomorrow
+        $upcomingDays = [];
+        for ($i = 1; $i <= 7; $i++) {
+            $date = now()->addDays($i);
+            $dayName = strtolower($date->format('l'));
+            $dayLabel = $i === 1 ? 'Tomorrow (' . $date->format('l, M j') . ')' : $date->format('l, M j');
+
+            $upcomingDays[] = [
+                'day'      => $dayName,
+                'dayLabel' => $dayLabel,
+            ];
+        }
+
+        $upcomingRoutinesGrouped = collect();
+        $totalUpcomingCount = 0;
+
+        foreach ($upcomingDays as $item) {
+            $dayName = $item['day'];
+            $dayRoutines = $allRoutines->filter(function ($routine) use ($dayName) {
+                return $routine->status && ($routine->repeat_type === 'daily' || strtolower($routine->study_day) === $dayName);
+            })->sortBy('start_time');
+
+            if ($dayRoutines->isNotEmpty()) {
+                $upcomingRoutinesGrouped->put($item['dayLabel'], $dayRoutines);
+                $totalUpcomingCount += $dayRoutines->count();
+            }
+        }
 
         $courses = Course::where('user_id', $userId)
             ->where('status', 'active')
@@ -252,12 +292,13 @@ class Index extends Component
             ->get();
 
         return view('livewire.routine.index', [
-            'allRoutines'      => $allRoutines,
-            'todayRoutines'    => $todayRoutines,
-            'upcomingRoutines' => $upcomingRoutines,
-            'courses'          => $courses,
-            'days'             => StudyRoutine::$DAYS,
-            'reminderOptions'  => StudyRoutine::$REMINDER_OPTIONS,
-        ])->layout('layouts.app');
+            'allRoutines'             => $allRoutines,
+            'todayRoutines'           => $todayRoutines,
+            'upcomingRoutinesGrouped' => $upcomingRoutinesGrouped,
+            'totalUpcomingCount'      => $totalUpcomingCount,
+            'courses'                 => $courses,
+            'days'                    => StudyRoutine::$DAYS,
+            'reminderOptions'         => StudyRoutine::$REMINDER_OPTIONS,
+        ])->layout('layouts.dashboard', ['title' => 'Learning Routines']);
     }
 }

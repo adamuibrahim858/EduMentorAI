@@ -3,6 +3,7 @@
     'value',
     'change' => null,
     'changeType' => 'positive', // 'positive', 'neutral'
+    'subtext' => null,
     'gradient' => 'from-indigo-500 to-purple-600',
     'icon' => null
 ])
@@ -48,7 +49,9 @@
                 </svg>
                 {{ $change }}
             </span>
-            <span class="text-slate-500 dark:text-slate-400">vs last week</span>
+            @if($subtext)
+                <span class="text-slate-500 dark:text-slate-400">{{ $subtext }}</span>
+            @endif
         </div>
     @endif
 </div>

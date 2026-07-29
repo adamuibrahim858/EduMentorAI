@@ -11,8 +11,8 @@
 
     <div class="grid grid-cols-2 gap-3.5 sm:grid-cols-4">
         <!-- Action 1: Upload Material -->
-        <button 
-            @click="currentTab = 'courses'"
+        <a 
+            href="{{ route('courses.index') }}"
             class="group flex flex-col items-center justify-center rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 text-center transition-all duration-200 hover:-translate-y-1 hover:border-indigo-300 hover:bg-indigo-50/50 hover:shadow-lg hover:shadow-indigo-500/10 dark:border-slate-800 dark:bg-slate-800/40 dark:hover:border-indigo-500/40 dark:hover:bg-slate-800"
         >
             <div class="flex size-11 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-600/20 transition-transform duration-200 group-hover:scale-110">
@@ -22,11 +22,11 @@
             </div>
             <span class="mt-3 text-xs font-bold text-slate-800 dark:text-slate-200">Upload Material</span>
             <span class="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">PDF, Notes, Slides</span>
-        </button>
+        </a>
 
         <!-- Action 2: Generate Summary -->
-        <button 
-            @click="currentTab = 'courses'"
+        <a 
+            href="{{ route('courses.index') }}"
             class="group flex flex-col items-center justify-center rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 text-center transition-all duration-200 hover:-translate-y-1 hover:border-purple-300 hover:bg-purple-50/50 hover:shadow-lg hover:shadow-purple-500/10 dark:border-slate-800 dark:bg-slate-800/40 dark:hover:border-purple-500/40 dark:hover:bg-slate-800"
         >
             <div class="flex size-11 items-center justify-center rounded-xl bg-purple-600 text-white shadow-md shadow-purple-600/20 transition-transform duration-200 group-hover:scale-110">
@@ -36,11 +36,11 @@
             </div>
             <span class="mt-3 text-xs font-bold text-slate-800 dark:text-slate-200">Generate Summary</span>
             <span class="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">Smart AI Notes</span>
-        </button>
+        </a>
 
         <!-- Action 3: Practice Questions -->
-        <button 
-            @click="currentTab = 'practice'"
+        <a 
+            href="{{ route('practices.index') }}"
             class="group flex flex-col items-center justify-center rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 text-center transition-all duration-200 hover:-translate-y-1 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-lg hover:shadow-blue-500/10 dark:border-slate-800 dark:bg-slate-800/40 dark:hover:border-blue-500/40 dark:hover:bg-slate-800"
         >
             <div class="flex size-11 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-600/20 transition-transform duration-200 group-hover:scale-110">
@@ -50,11 +50,11 @@
             </div>
             <span class="mt-3 text-xs font-bold text-slate-800 dark:text-slate-200">Practice Questions</span>
             <span class="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">Adaptive Quizzes</span>
-        </button>
+        </a>
 
         <!-- Action 4: Study Routine -->
-        <button 
-            @click="currentTab = 'routine'"
+        <a 
+            href="{{ route('routine') }}"
             class="group flex flex-col items-center justify-center rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 text-center transition-all duration-200 hover:-translate-y-1 hover:border-emerald-300 hover:bg-emerald-50/50 hover:shadow-lg hover:shadow-emerald-500/10 dark:border-slate-800 dark:bg-slate-800/40 dark:hover:border-emerald-500/40 dark:hover:bg-slate-800"
         >
             <div class="flex size-11 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20 transition-transform duration-200 group-hover:scale-110">
@@ -64,6 +64,6 @@
             </div>
             <span class="mt-3 text-xs font-bold text-slate-800 dark:text-slate-200">Study Routine</span>
             <span class="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">Schedule Planner</span>
-        </button>
+        </a>
     </div>
 </div>

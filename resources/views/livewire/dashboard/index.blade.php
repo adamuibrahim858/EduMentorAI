@@ -42,32 +42,32 @@
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <x-dashboard.stats-card
                 title="Enrolled Courses"
-                value="{{ $user->courses()->count() }}"
-                change="Active courses"
+                value="{{ $coursesCount }}"
+                change="{{ $coursesCount === 1 ? '1 Active Course' : $coursesCount . ' Active Courses' }}"
                 changeType="positive"
                 gradient="from-indigo-600 to-blue-600"
                 icon="courses"
             />
             <x-dashboard.stats-card
                 title="Practices Completed"
-                value="42"
-                change="+12 this week"
+                value="{{ $practicesCount }}"
+                change="{{ '+' . $thisWeekCount . ' this week' }}"
                 changeType="positive"
                 gradient="from-purple-600 to-indigo-600"
                 icon="practice"
             />
             <x-dashboard.stats-card
                 title="Study Streak"
-                value="7 Days 🔥"
-                change="Top 5% learner"
+                value="{{ $streak . ' Day' . ($streak === 1 ? '' : 's') . ' 🔥' }}"
+                change="{{ $streak > 0 ? 'Active learning streak' : 'Start a streak today' }}"
                 changeType="positive"
                 gradient="from-amber-500 to-orange-600"
                 icon="streak"
             />
             <x-dashboard.stats-card
                 title="Average Score"
-                value="94.8%"
-                change="+4.2% overall"
+                value="{{ $avgScore . '%' }}"
+                change="{{ $practicesCount > 0 ? 'Based on ' . $practicesCount . ' quiz' . ($practicesCount > 1 ? 'zes' : '') : 'No quizzes completed yet' }}"
                 changeType="positive"
                 gradient="from-emerald-500 to-teal-600"
                 icon="score"
@@ -76,8 +76,5 @@
 
         <!-- Quick Actions Grid -->
         <x-dashboard.quick-actions />
-
-        <!-- Recent Activity Timeline -->
-        <x-dashboard.recent-activity :user="$user" />
     </div>
 </x-layouts.dashboard>
