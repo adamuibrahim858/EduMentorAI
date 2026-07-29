@@ -15,7 +15,9 @@ use App\Livewire\Course\Index as CourseIndex;
 use App\Livewire\Course\Show as CourseShow;
 use App\Livewire\Dashboard\Index as Dashboard;
 use App\Livewire\Notification\Index as NotificationIndex;
+use App\Livewire\Practice\Explanation as PracticeExplanation;
 use App\Livewire\Practice\Index as PracticeIndex;
+use App\Livewire\Practice\Quiz as PracticeQuiz;
 use App\Livewire\Profile\Show as ProfileShow;
 use App\Livewire\Progress\Index as ProgressIndex;
 use App\Livewire\Routine\Index as RoutineIndex;
@@ -46,6 +48,8 @@ Route::middleware(['auth', 'verified', 'active.account'])->group(function (): vo
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
     Route::get('/profile', ProfileShow::class)->name('profile');
     Route::get('/practices', PracticeIndex::class)->name('practices.index');
+    Route::get('/practices/{practiceSet}/quiz', PracticeQuiz::class)->name('practices.quiz');
+    Route::get('/practices/session/{session}/explanation', PracticeExplanation::class)->name('practices.explanation');
     Route::get('/progress', ProgressIndex::class)->name('progress.index');
     Route::get('/academic-progress', ProgressIndex::class)->name('progress');
     Route::get('/routine', RoutineIndex::class)->name('routine');

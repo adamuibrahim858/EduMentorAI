@@ -97,20 +97,14 @@ class Index extends Component
     public ?string $startedAt        = null;
 
     // ── Start / exit a quiz attempt ───────────────────────────
-    public function startQuiz(int $practiceSetId): void
+    public function startQuiz(int $practiceSetId)
     {
         $ps = PracticeSet::where('id', $practiceSetId)
             ->where('user_id', auth()->id())
             ->where('status', 'ready')
             ->firstOrFail();
 
-        $this->activePracticeId = $ps->id;
-        $this->answers          = [];
-        $this->submitted        = false;
-        $this->results          = [];
-        $this->startedAt        = now()->toDateTimeString();
-        $this->showQuiz         = true;
-        $this->showGenerateModal = false;
+        return redirect()->route('practices.quiz', $ps->id);
     }
 
     public function exitQuiz(): void
