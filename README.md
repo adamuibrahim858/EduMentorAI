@@ -2,6 +2,12 @@
 
 **EduMentor AI** is an AI-powered academic platform designed to help students manage their courses, study materials, and learning progress. It leverages **Google Gemma 4** (via AI API) to generate intelligent course summaries, AI-powered practice quizzes, and provide a persistent general-purpose AI chat assistant — all within a clean, modern Laravel + Livewire dashboard.
 
+## 🌐 Live Demo
+
+> **Try it now:** [https://edumentorai.ukam.com.ng/login](https://edumentorai.ukam.com.ng/login)
+
+Register a new account or use Google OAuth to log in and explore all features instantly — no local setup required.
+
 ---
 
 ## ✨ Features
